@@ -9,7 +9,7 @@ public class Explorer extends AllyUnit {
 
     void runFirstTurn() {
         communication.downloadAllyBase();
-        communication.downloadMapBoundaries();
+        communication.downloadMapBoundariesAndEnemyBase();
     }
 
     void run() {
