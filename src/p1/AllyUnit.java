@@ -1,17 +1,15 @@
 package p1;
 
 import aic2022.user.*;
-public abstract class MyUnit {
+public abstract class AllyUnit {
 
     UnitController uc;
-    UnitType myType;
     Team opponent;
 
     Communication communication;
 
-    MyUnit(UnitController uc){
+    AllyUnit(UnitController uc){
         this.uc = uc;
-        myType = uc.getType();
         opponent = uc.getOpponent();
 
         communication = new Communication(uc);

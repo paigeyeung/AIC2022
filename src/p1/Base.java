@@ -2,13 +2,13 @@ package p1;
 
 import aic2022.user.*;
 
-public class Base extends MyUnit {
+public class Base extends AllyUnit {
     Base(UnitController uc) {
         super(uc);
     }
 
     void runFirstTurn() {
-        communication.uploadMyBase(uc.getLocation());
+        communication.uploadAllyBase(uc.getLocation());
         communication.lookForMapBoundaries();
     }
 

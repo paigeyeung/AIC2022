@@ -15,13 +15,13 @@ public class Communication {
 
     /*
     Shared array elements:
-    0: My base location
+    0: Ally base location
     1: Map North boundary
     2: Map South boundary
     3: Map West boundary
     4: Map East boundary
      */
-    final int INDEX_MY_BASE_LOCATION = 0;
+    final int INDEX_ALLY_BASE_LOCATION = 0;
     final int INDEX_MAP_NORTH_BOUNDARY = 1;
     final int INDEX_MAP_SOUTH_BOUNDARY = 2;
     final int INDEX_MAP_WEST_BOUNDARY = 3;
@@ -37,31 +37,31 @@ public class Communication {
         return new Location((encodedLocation >> 16) & 0xffff, encodedLocation & 0xffff);
     }
 
-    Location myBaseLocation;
-    void uploadMyBase(Location myBaseLocation) {
-        this.myBaseLocation = myBaseLocation;
-        uc.writeOnSharedArray(INDEX_MY_BASE_LOCATION, encodeLocation(myBaseLocation));
-        uc.println("Communication uploadMyBase " + myBaseLocation);
+    Location allyBaseLocation;
+    void uploadAllyBase(Location allyBaseLocation) {
+        this.allyBaseLocation = allyBaseLocation;
+        uc.writeOnSharedArray(INDEX_ALLY_BASE_LOCATION, encodeLocation(allyBaseLocation));
+        uc.println("Communication uploadAllyBase " + allyBaseLocation);
     }
-    void downloadMyBase() {
-        myBaseLocation = decodeLocation(uc.readOnSharedArray(INDEX_MY_BASE_LOCATION));
-        uc.println("Communication downloadMyBase " + myBaseLocation);
+    void downloadAllyBase() {
+        allyBaseLocation = decodeLocation(uc.readOnSharedArray(INDEX_ALLY_BASE_LOCATION));
+        uc.println("Communication downloadAllyBase " + allyBaseLocation);
     }
 
     int mapNorthBoundary = 0, mapSouthBoundary = 0, mapWestBoundary = 0, mapEastBoundary = 0; // 0 means uninitialized
     void lookForMapBoundaries() {
-        Location myLocation = uc.getLocation();
-        if(uc.isOutOfMap(new Location(myLocation.x, myLocation.y + visionRangeTilesInOneDirection)))
-            foundMapBoundaryRoughly(Direction.NORTH, myLocation.y + visionRangeTilesInOneDirection);
-        if(uc.isOutOfMap(new Location(myLocation.x, myLocation.y - visionRangeTilesInOneDirection)))
-            foundMapBoundaryRoughly(Direction.SOUTH, myLocation.y - visionRangeTilesInOneDirection);
-        if(uc.isOutOfMap(new Location(myLocation.x - visionRangeTilesInOneDirection, myLocation.y)))
-            foundMapBoundaryRoughly(Direction.WEST, myLocation.x - visionRangeTilesInOneDirection);
-        if(uc.isOutOfMap(new Location(myLocation.x + visionRangeTilesInOneDirection, myLocation.y)))
-            foundMapBoundaryRoughly(Direction.EAST, myLocation.x + visionRangeTilesInOneDirection);
+        Location selfLocation = uc.getLocation();
+        if(uc.isOutOfMap(new Location(selfLocation.x, selfLocation.y + visionRangeTilesInOneDirection)))
+            foundMapBoundaryRoughly(Direction.NORTH, selfLocation.y + visionRangeTilesInOneDirection);
+        if(uc.isOutOfMap(new Location(selfLocation.x, selfLocation.y - visionRangeTilesInOneDirection)))
+            foundMapBoundaryRoughly(Direction.SOUTH, selfLocation.y - visionRangeTilesInOneDirection);
+        if(uc.isOutOfMap(new Location(selfLocation.x - visionRangeTilesInOneDirection, selfLocation.y)))
+            foundMapBoundaryRoughly(Direction.WEST, selfLocation.x - visionRangeTilesInOneDirection);
+        if(uc.isOutOfMap(new Location(selfLocation.x + visionRangeTilesInOneDirection, selfLocation.y)))
+            foundMapBoundaryRoughly(Direction.EAST, selfLocation.x + visionRangeTilesInOneDirection);
     }
     void foundMapBoundaryRoughly(Direction direction, int maxBoundary) {
-        Location myLocation = uc.getLocation();
+        Location selfLocation = uc.getLocation();
         int boundary = maxBoundary;
         while(true) {
             if(direction.isEqual(Direction.SOUTH) || direction.isEqual(Direction.WEST))
@@ -71,13 +71,13 @@ public class Communication {
 
             Location newLocation;
             if(direction.isEqual(Direction.NORTH))
-                newLocation = new Location(myLocation.x, boundary);
+                newLocation = new Location(selfLocation.x, boundary);
             else if(direction.isEqual(Direction.SOUTH))
-                newLocation = new Location(myLocation.x, boundary);
+                newLocation = new Location(selfLocation.x, boundary);
             else if(direction.isEqual(Direction.WEST))
-                newLocation = new Location(boundary, myLocation.y);
+                newLocation = new Location(boundary, selfLocation.y);
             else if(direction.isEqual(Direction.EAST))
-                newLocation = new Location(boundary, myLocation.y);
+                newLocation = new Location(boundary, selfLocation.y);
             else {
                 uc.println("ERROR: Communication foundMapBoundaryRoughly direction not found");
                 return;
