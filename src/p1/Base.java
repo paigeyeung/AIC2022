@@ -3,8 +3,14 @@ package p1;
 import aic2022.user.*;
 
 public class Base extends MyUnit {
+    Communication communication;
     Base(UnitController uc) {
         super(uc);
+        communication = new Communication(uc);
+    }
+
+    void runFirstTurn() {
+        communication.uploadMyBase(uc.getLocation());
     }
 
     void run() {

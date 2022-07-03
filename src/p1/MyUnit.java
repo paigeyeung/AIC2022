@@ -11,6 +11,6 @@ public abstract class MyUnit {
         opponent = uc.getOpponent();
     }
 
+    abstract void runFirstTurn();
     abstract void run();
-
 }
