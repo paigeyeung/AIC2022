@@ -20,7 +20,7 @@ public class Communication {
     2: Map South boundary (y coordinate)
     3: Map West boundary (x coordinate)
     4: Map East boundary (x coordinate)
-    5: Enemy base corner (-1 is unknown, -2 is found location,
+    5: Enemy base corners (-1 is unknown, -2 is found location,
         1 << 0 is could be North West corner, 1 << 1 is could be North East corner,
         1 << 2 is could be South West corner, 1 << 3 is could be South East corner)
     6: Enemy base location (location)
@@ -30,7 +30,7 @@ public class Communication {
     final int INDEX_MAP_SOUTH_BOUNDARY = 2;
     final int INDEX_MAP_WEST_BOUNDARY = 3;
     final int INDEX_MAP_EAST_BOUNDARY = 4;
-    final int INDEX_ENEMY_BASE_CORNER = 5;
+    final int INDEX_ENEMY_BASE_CORNERS = 5;
     final int INDEX_ENEMY_BASE_LOCATION = 6;
     final int INDEX_MOVEMENT = 7;
 //    final int INDEX_LOCATIONS = 1000;
@@ -67,13 +67,15 @@ public class Communication {
             mapSouthBoundary = UNINITIALIZED_BOUNDARY,
             mapWestBoundary = UNINITIALIZED_BOUNDARY,
             mapEastBoundary = UNINITIALIZED_BOUNDARY;
-    int enemyBaseCorner = 0; Location enemyBaseLocation;
+    int enemyBaseCorners = -1;
+    Location enemyBaseLocation;
 
     void initializeBoundaries() {
         uploadMapBoundary(Direction.EAST, UNINITIALIZED_BOUNDARY);
         uploadMapBoundary(Direction.NORTH, UNINITIALIZED_BOUNDARY);
         uploadMapBoundary(Direction.SOUTH, UNINITIALIZED_BOUNDARY);
         uploadMapBoundary(Direction.WEST, UNINITIALIZED_BOUNDARY);
+        uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNERS, enemyBaseCorners);
     }
 
     void lookForMapBoundaries() {
@@ -99,12 +101,8 @@ public class Communication {
             Location newLocation;
             if(direction.isEqual(Direction.NORTH) || direction.isEqual(Direction.SOUTH))
                 newLocation = new Location(selfLocation.x, boundary);
-            else if(direction.isEqual(Direction.WEST) || direction.isEqual(Direction.EAST))
+            else
                 newLocation = new Location(boundary, selfLocation.y);
-            else {
-                uc.println("ERROR: Communication foundMapBoundaryRoughly direction not found");
-                return;
-            }
 
             if(!uc.isOutOfMap(newLocation)) {
                 uploadMapBoundary(direction, boundary);
@@ -138,46 +136,45 @@ public class Communication {
         uc.writeOnSharedArray(index, boundary);
         uc.println("Communication uploadMapBoundary index: " + index + ", direction: " + direction + ", boundary: " + boundary);
     }
-    void updateEnemyBaseDirection() {
+    void guessEnemyBaseCorners() {
         if(allyBaseLocation == null)
             return;
-        if(enemyBaseCorner != -1)
+        if(enemyBaseCorners != -1)
             return;
 
         final int requiredDistance = 15;
-        // If ally base is close enough to a corner of the map
         if(mapNorthBoundary != UNINITIALIZED_BOUNDARY && mapWestBoundary != UNINITIALIZED_BOUNDARY
                 && allyBaseLocation.x - mapWestBoundary <= requiredDistance
                 && mapNorthBoundary - allyBaseLocation.y <= requiredDistance)
-            uploadEnemyBaseCorner(Direction.NORTHWEST);
+            uploadEnemyBaseCorners(Direction.NORTHWEST);
         else if(mapNorthBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary != UNINITIALIZED_BOUNDARY
                 && mapEastBoundary - allyBaseLocation.x <= requiredDistance
                 && mapNorthBoundary - allyBaseLocation.y <= requiredDistance)
-            uploadEnemyBaseCorner(Direction.NORTHEAST);
+            uploadEnemyBaseCorners(Direction.NORTHEAST);
         else if(mapSouthBoundary != UNINITIALIZED_BOUNDARY && mapWestBoundary != UNINITIALIZED_BOUNDARY
                 && allyBaseLocation.x - mapWestBoundary <= requiredDistance
                 && allyBaseLocation.y - mapSouthBoundary <= requiredDistance)
-            uploadEnemyBaseCorner(Direction.SOUTHWEST);
+            uploadEnemyBaseCorners(Direction.SOUTHWEST);
         else if(mapSouthBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary != UNINITIALIZED_BOUNDARY
                 && mapEastBoundary - allyBaseLocation.x <= requiredDistance
                 && allyBaseLocation.y - mapSouthBoundary <= requiredDistance)
-            uploadEnemyBaseCorner(Direction.SOUTHEAST);
+            uploadEnemyBaseCorners(Direction.SOUTHEAST);
     }
-    void uploadEnemyBaseCorner(Direction allyBaseCorner) {
-        Direction guessDirection = allyBaseCorner.opposite();
+    void uploadEnemyBaseCorners(Direction allyBaseCorner) {
+        enemyBaseCorners = 0xf;
+        if(allyBaseCorner.isEqual(Direction.NORTHWEST)) enemyBaseCorners &= ~(1 << 0);
+        else if(allyBaseCorner.isEqual(Direction.NORTHEAST)) enemyBaseCorners &= ~(1 << 1);
+        else if(allyBaseCorner.isEqual(Direction.SOUTHWEST)) enemyBaseCorners &= ~(1 << 2);
+        else if(allyBaseCorner.isEqual(Direction.SOUTHEAST)) enemyBaseCorners &= ~(1 << 3);
 
-        if(guessDirection.isEqual(Direction.NORTHWEST)) enemyBaseCorner = 1 << 0;
-        else if(guessDirection.isEqual(Direction.NORTHEAST)) enemyBaseCorner = 1 << 1;
-        else if(guessDirection.isEqual(Direction.SOUTHWEST)) enemyBaseCorner = 1 << 2;
-        else if(guessDirection.isEqual(Direction.SOUTHEAST)) enemyBaseCorner = 1 << 3;
-
-        uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNER, enemyBaseCorner);
+        uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNERS, enemyBaseCorners);
     }
 
-    void uploadEnemyBaseLocation (Location location) {
-        enemyBaseLocation = location;
-        uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNER, -2);
-        uc.writeOnSharedArray(INDEX_ENEMY_BASE_LOCATION, encodeLocation(location));
+    void uploadEnemyBaseLocation(Location enemyBaseLocation) {
+        enemyBaseCorners = -2;
+        this.enemyBaseLocation = enemyBaseLocation;
+        uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNERS, enemyBaseCorners);
+        uc.writeOnSharedArray(INDEX_ENEMY_BASE_LOCATION, encodeLocation(enemyBaseLocation));
     }
 
     void downloadMapBoundariesAndEnemyBase() {
@@ -186,12 +183,12 @@ public class Communication {
         mapWestBoundary = uc.readOnSharedArray(INDEX_MAP_WEST_BOUNDARY);
         mapEastBoundary = uc.readOnSharedArray(INDEX_MAP_EAST_BOUNDARY);
 
-        enemyBaseCorner = uc.readOnSharedArray(INDEX_ENEMY_BASE_CORNER);
-        if(enemyBaseCorner == -2) {
+        enemyBaseCorners = uc.readOnSharedArray(INDEX_ENEMY_BASE_CORNERS);
+        if(enemyBaseCorners == -2) {
             enemyBaseLocation = decodeLocation(uc.readOnSharedArray(INDEX_ENEMY_BASE_LOCATION));
         }
 
-        uc.println("Communication downloadMapBoundariesAndEnemyBase mapNorthBoundary: " + mapNorthBoundary + ", mapSouthBoundary: " + mapSouthBoundary + ", mapWestBoundary: " + mapWestBoundary + ", mapEastBoundary: " + mapEastBoundary + ", enemyBaseCorner: " + enemyBaseCorner + (enemyBaseCorner == -2 ? ", enemyBaseLocation: " + enemyBaseLocation : ""));
+        uc.println("Communication downloadMapBoundariesAndEnemyBase mapNorthBoundary: " + mapNorthBoundary + ", mapSouthBoundary: " + mapSouthBoundary + ", mapWestBoundary: " + mapWestBoundary + ", mapEastBoundary: " + mapEastBoundary + ", enemyBaseCorner: " + enemyBaseCorners + (enemyBaseCorners == -2 ? ", enemyBaseLocation: " + enemyBaseLocation : ""));
     }
 
     void setExplorerMovementDir() {
