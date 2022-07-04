@@ -72,22 +72,26 @@ public class Communication {
     Location enemyBaseLocation;
 
     void initializeMapBoundariesAndEnemyBaseCorners() {
-        uploadMapBoundary(Direction.EAST, UNINITIALIZED_BOUNDARY);
-        uploadMapBoundary(Direction.NORTH, UNINITIALIZED_BOUNDARY);
-        uploadMapBoundary(Direction.SOUTH, UNINITIALIZED_BOUNDARY);
-        uploadMapBoundary(Direction.WEST, UNINITIALIZED_BOUNDARY);
+        uc.writeOnSharedArray(INDEX_MAP_NORTH_BOUNDARY, mapNorthBoundary);
+        uc.writeOnSharedArray(INDEX_MAP_SOUTH_BOUNDARY, mapSouthBoundary);
+        uc.writeOnSharedArray(INDEX_MAP_WEST_BOUNDARY, mapWestBoundary);
+        uc.writeOnSharedArray(INDEX_MAP_EAST_BOUNDARY, mapEastBoundary);
         uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNERS, enemyBaseCorners);
     }
 
     void lookForMapBoundaries() {
         Location selfLocation = uc.getLocation();
-        if(uc.isOutOfMap(new Location(selfLocation.x, selfLocation.y + visionRangeTilesInOneDirection)))
+        if(mapNorthBoundary == UNINITIALIZED_BOUNDARY && uc.isOutOfMap(
+                new Location(selfLocation.x, selfLocation.y + visionRangeTilesInOneDirection)))
             foundMapBoundaryRoughly(Direction.NORTH, selfLocation.y + visionRangeTilesInOneDirection);
-        if(uc.isOutOfMap(new Location(selfLocation.x, selfLocation.y - visionRangeTilesInOneDirection)))
+        if(mapSouthBoundary == UNINITIALIZED_BOUNDARY && uc.isOutOfMap(
+                new Location(selfLocation.x, selfLocation.y - visionRangeTilesInOneDirection)))
             foundMapBoundaryRoughly(Direction.SOUTH, selfLocation.y - visionRangeTilesInOneDirection);
-        if(uc.isOutOfMap(new Location(selfLocation.x - visionRangeTilesInOneDirection, selfLocation.y)))
+        if(mapWestBoundary == UNINITIALIZED_BOUNDARY && uc.isOutOfMap(
+                new Location(selfLocation.x - visionRangeTilesInOneDirection, selfLocation.y)))
             foundMapBoundaryRoughly(Direction.WEST, selfLocation.x - visionRangeTilesInOneDirection);
-        if(uc.isOutOfMap(new Location(selfLocation.x + visionRangeTilesInOneDirection, selfLocation.y)))
+        if(mapEastBoundary == UNINITIALIZED_BOUNDARY && uc.isOutOfMap(
+                new Location(selfLocation.x + visionRangeTilesInOneDirection, selfLocation.y)))
             foundMapBoundaryRoughly(Direction.EAST, selfLocation.x + visionRangeTilesInOneDirection);
     }
 
@@ -108,7 +112,6 @@ public class Communication {
 
             if(!uc.isOutOfMap(newLocation)) {
                 uploadMapBoundary(direction, boundary);
-                uc.println("Communication uploaded new map boundary for " + direction + ": " + boundary);
                 return;
             }
         }
