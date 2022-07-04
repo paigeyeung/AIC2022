@@ -70,7 +70,7 @@ public class Communication {
     int enemyBaseCorners = -1;
     Location enemyBaseLocation;
 
-    void initializeBoundaries() {
+    void initializeMapBoundariesAndEnemyBaseCorners() {
         uploadMapBoundary(Direction.EAST, UNINITIALIZED_BOUNDARY);
         uploadMapBoundary(Direction.NORTH, UNINITIALIZED_BOUNDARY);
         uploadMapBoundary(Direction.SOUTH, UNINITIALIZED_BOUNDARY);
@@ -89,6 +89,7 @@ public class Communication {
         if(uc.isOutOfMap(new Location(selfLocation.x + visionRangeTilesInOneDirection, selfLocation.y)))
             foundMapBoundaryRoughly(Direction.EAST, selfLocation.x + visionRangeTilesInOneDirection);
     }
+
     void foundMapBoundaryRoughly(Direction direction, int maxBoundary) {
         Location selfLocation = uc.getLocation();
         int boundary = maxBoundary;
@@ -111,6 +112,7 @@ public class Communication {
             }
         }
     }
+
     void uploadMapBoundary(Direction direction, int boundary) {
         int index;
         if(direction.isEqual(Direction.NORTH)) {
@@ -136,6 +138,7 @@ public class Communication {
         uc.writeOnSharedArray(index, boundary);
         uc.println("Communication uploadMapBoundary index: " + index + ", direction: " + direction + ", boundary: " + boundary);
     }
+
     void guessEnemyBaseCorners() {
         if(allyBaseLocation == null)
             return;
@@ -160,6 +163,7 @@ public class Communication {
                 && allyBaseLocation.y - mapSouthBoundary <= requiredDistance)
             uploadEnemyBaseCorners(Direction.SOUTHEAST);
     }
+
     void uploadEnemyBaseCorners(Direction allyBaseCorner) {
         enemyBaseCorners = 0xf;
         if(allyBaseCorner.isEqual(Direction.NORTHWEST)) enemyBaseCorners &= ~(1 << 0);
@@ -210,6 +214,7 @@ public class Communication {
         if(idx != 0) return Direction.values()[idx-1];
         return null;
     }
+
     void setRandomAttackMovementDir() {
         int randomNumber = (int)(Math.random()*8) + 1;
         uc.writeOnSharedArray(INDEX_MOVEMENT, randomNumber << 8);

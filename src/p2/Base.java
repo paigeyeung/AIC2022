@@ -13,8 +13,9 @@ public class Base extends AllyUnit {
 
     void runFirstTurn() {
         communication.uploadAllyBase(uc.getLocation());
-        communication.initializeBoundaries();
+        communication.initializeMapBoundariesAndEnemyBaseCorners();
         communication.lookForMapBoundaries();
+        communication.guessEnemyBaseCorners();
     }
 
     void run() {
