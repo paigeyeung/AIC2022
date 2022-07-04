@@ -28,12 +28,12 @@ public class Barbarian extends AllyUnit {
         }
         // If attack
         else if (myAction == 3)  {
-            if(communication.enemyBaseCorner == -2) {
+            if(communication.enemyBaseCorners == -2) {
                 dest = communication.enemyBaseLocation;
                 moveTo(dest);
                 uc.println("Barbarian set destination to enemy base " + dest.toString());
             }
-            else if (communication.enemyBaseCorner == -1 &&
+            else if (communication.enemyBaseCorners == -1 &&
                     tryMove(myLocation.directionTo(communication.allyBaseLocation).opposite())) {
             }
             else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
