@@ -36,12 +36,12 @@ public class Explorer extends AllyUnit {
         }
         else if (communication.allBoundariesFound()) {
             if (dest == null) {
-                if(communication.enemyBaseCorner == -2) {
+                if(communication.enemyBaseCorners == -2) {
                     dest = communication.enemyBaseLocation;
                     moveTo(dest);
                     uc.println("Explorer set destination to " + dest.toString());
                 }
-                else if (communication.enemyBaseCorner == -1 && tryMove(myLocation.directionTo(communication.allyBaseLocation).opposite())) {
+                else if (communication.enemyBaseCorners == -1 && tryMove(myLocation.directionTo(communication.allyBaseLocation).opposite())) {
 
                 }
                 else tryRandomMove();
