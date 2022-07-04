@@ -2,16 +2,17 @@ package p2;
 
 import aic2022.user.*;
 public abstract class AllyUnit {
-    enum Action {
-        HOLD,
-        EXPLORE,
-        ATTACK,
-        RETREAT
-    }
+//    enum Action {
+//        HOLD,
+//        EXPLORE,
+//        ATTACK,
+//        RETREAT
+//    }
 
     int[][] visited = new int[80][80];
     UnitController uc;
     Team opponent;
+    Team ally;
 
     Communication communication;
 
@@ -24,6 +25,7 @@ public abstract class AllyUnit {
     AllyUnit(UnitController uc){
         this.uc = uc;
         opponent = uc.getOpponent();
+        ally = uc.getTeam();
         communication = new Communication(uc);
     }
 
@@ -105,12 +107,12 @@ public abstract class AllyUnit {
 
     void moveTo(Location location) {
         Location myLocation = uc.getLocation();
-        double cost = myLocation.distanceSquared(location) + turnsNoMove * 5 + getVisited(myLocation) * 10;
+        int cost = myLocation.distanceSquared(location) + turnsNoMove * 5 + getVisited(myLocation) * 10;
         Direction dir = null;
         for (Direction d: directions) {
             if(uc.canMove(d)) {
                 Location newLocation = myLocation.add(d);
-                double directionCost = newLocation.distanceSquared(location) + getVisited(newLocation) * 10;
+                int directionCost = newLocation.distanceSquared(location) + getVisited(newLocation) * 10;
                 if (directionCost < cost) {
                     cost = directionCost;
                     dir = d;
@@ -119,7 +121,7 @@ public abstract class AllyUnit {
         }
 
         if (dir != null) {
-            tryMove(dir);
+            tryAdjMoves(dir);
         }
     }
 
@@ -153,5 +155,17 @@ public abstract class AllyUnit {
             }
         }
         return combatScore;
+    }
+
+    int getAction() {
+        int allyCombatScore = getCombatScore(ally);
+        int enemyCombatScore = getCombatScore(opponent);
+        if (enemyCombatScore > 0.8 * allyCombatScore) {
+            return 0; // Retreat
+        }
+        else if (allyCombatScore > 1.5 * enemyCombatScore) {
+            return 3; // Attack
+        }
+        return 2; // Hold
     }
 }

@@ -20,7 +20,6 @@ public class Base extends AllyUnit {
     void run() {
         communication.downloadMapBoundariesAndEnemyBase();
         Direction dir = getRandomDirection();
-//        if (uc.canMove(dir)) uc.move(dir);
 
         if (uc.canSpawn(UnitType.EXPLORER, dir) &&
                 (explorersSpawned < 3 || explorersSpawned < 0.1*totalSpawned)) {

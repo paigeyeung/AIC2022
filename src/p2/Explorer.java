@@ -22,7 +22,13 @@ public class Explorer extends AllyUnit {
         Location myLocation = uc.getLocation();
 
         Direction movementDir = communication.getExplorerMovementDir();
-        if (movementDir == null ||
+
+        if (getCombatScore(opponent) >= getCombatScore(ally)) {
+            dest = communication.allyBaseLocation;
+            moveTo(dest);
+            uc.println("Explorer set destination to " + dest.toString());
+        }
+        else if (movementDir == null ||
                 (communication.foundBoundary(movementDir) && !communication.allBoundariesFound())) {
             communication.setExplorerMovementDir();
             movementDir = communication.getExplorerMovementDir();
@@ -32,6 +38,7 @@ public class Explorer extends AllyUnit {
             if (dest == null) {
                 if(communication.enemyBaseCorner == -2) {
                     dest = communication.enemyBaseLocation;
+                    moveTo(dest);
                     uc.println("Explorer set destination to " + dest.toString());
                 }
                 else if (communication.enemyBaseCorner == -1 && tryMove(myLocation.directionTo(communication.allyBaseLocation).opposite())) {

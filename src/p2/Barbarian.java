@@ -18,41 +18,33 @@ public class Barbarian extends AllyUnit {
         communication.downloadMapBoundariesAndEnemyBase();
         attackNearbyEnemies();
         Location myLocation = uc.getLocation();
-
         Location loc = uc.getLocation();
+
+        int myAction = getAction();
+
         if(dest != null && (loc.distanceSquared(dest) > 9 ||
                 uc.senseUnits(opponent).length > 0)) {
             moveTo(dest);
         }
-        else if(loc.distanceSquared(communication.allyBaseLocation) < 4) {
-            uc.println("Barbarian set destination to " + dest.toString());
-            moveTo(dest);
-
-            if (dest == null) {
-                if(communication.enemyBaseCorner == -2) {
-                    dest = communication.enemyBaseLocation;
-                    uc.println("Explorer set destination to " + dest.toString());
-                }
-                else if (communication.enemyBaseCorner == -1 && tryMove(myLocation.directionTo(communication.allyBaseLocation).opposite())) {
-
-                }
-                else tryRandomMove();
+        // If attack
+        else if (myAction == 3)  {
+            if(communication.enemyBaseCorner == -2) {
+                dest = communication.enemyBaseLocation;
+                moveTo(dest);
+                uc.println("Barbarian set destination to enemy base " + dest.toString());
             }
-            tryRandomMove();
+            else if (communication.enemyBaseCorner == -1 &&
+                    tryMove(myLocation.directionTo(communication.allyBaseLocation).opposite())) {
+            }
+            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
         }
-        else {
-//            int randomNumber = (int)(Math.random()*3);
-//            if(randomNumber > 0) {
-//                if(communication.enemyBaseCorner == -2) {
-//                    dest = communication.enemyBaseLocation;
-//                }
-//                else if (communication.enemyBaseCorner == -1) {
-//
-//                }
-//                else {
-//                    dest = communication.allyBaseLocation;
-//                }
-//            }
+        // Hold
+        else if (myAction == 2) tryRandomMove();
+        //Retreat
+        else if (myAction == 0) {
+            dest = communication.allyBaseLocation;
+            moveTo(dest);
+            uc.println("Barbarian set destination to ally base " + dest.toString());
         }
     }
 }
