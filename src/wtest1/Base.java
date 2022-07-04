@@ -12,9 +12,14 @@ public class Base extends AllyUnit {
     }
 
     void runFirstTurn() {
+        communication.uploadAllyBase(uc.getLocation());
+        communication.initializeMapBoundariesAndEnemyBaseCorners();
+        communication.lookForMapBoundaries();
+        communication.guessEnemyBaseCorners();
     }
 
     void run() {
+        communication.downloadMapBoundariesAndEnemyBase();
         Direction dir = getRandomDirection();
 
         if (uc.canSpawn(UnitType.EXPLORER, dir) &&

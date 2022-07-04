@@ -24,7 +24,9 @@ public class UnitPlayer {
                     u.runFirstTurn();
                     firstTurn = false;
                 }
+                u.runBefore();
                 u.run();
+                u.runAfter();
             }
             uc.yield();
         }
