@@ -174,7 +174,7 @@ public class Communication {
         else if(allyBaseCorner.isEqual(Direction.SOUTHWEST)) enemyBaseCorners &= ~(1 << 2);
         else if(allyBaseCorner.isEqual(Direction.SOUTHEAST)) enemyBaseCorners &= ~(1 << 3);
         uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNERS, enemyBaseCorners);
-        uc.println("Communication uploadEnemyBaseCorners " + enemyBaseCorners);
+        uc.println("Communication uploadEnemyBaseCorners " + enemyBaseCorners + " (" + Integer.toBinaryString(enemyBaseCorners) + ")");
     }
 
     void uploadEnemyBaseLocation(Location enemyBaseLocation) {
@@ -189,13 +189,17 @@ public class Communication {
         mapSouthBoundary = uc.readOnSharedArray(INDEX_MAP_SOUTH_BOUNDARY);
         mapWestBoundary = uc.readOnSharedArray(INDEX_MAP_WEST_BOUNDARY);
         mapEastBoundary = uc.readOnSharedArray(INDEX_MAP_EAST_BOUNDARY);
+        uc.println("Communication downloadMapBoundariesAndEnemyBase mapNorthBoundary: " + mapNorthBoundary + ", mapSouthBoundary: " + mapSouthBoundary + ", mapWestBoundary: " + mapWestBoundary + ", mapEastBoundary: " + mapEastBoundary);
 
         enemyBaseCorners = uc.readOnSharedArray(INDEX_ENEMY_BASE_CORNERS);
         if(enemyBaseCorners == -2) {
             enemyBaseLocation = decodeLocation(uc.readOnSharedArray(INDEX_ENEMY_BASE_LOCATION));
+            uc.println("Communication downloadMapBoundariesAndEnemyBase enemyBaseLocation: " + enemyBaseLocation);
         }
-
-        uc.println("Communication downloadMapBoundariesAndEnemyBase mapNorthBoundary: " + mapNorthBoundary + ", mapSouthBoundary: " + mapSouthBoundary + ", mapWestBoundary: " + mapWestBoundary + ", mapEastBoundary: " + mapEastBoundary + ", enemyBaseCorner: " + enemyBaseCorners + (enemyBaseCorners == -2 ? ", enemyBaseLocation: " + enemyBaseLocation : ""));
+        else if(enemyBaseCorners == -1)
+            uc.println("Communication downloadMapBoundariesAndEnemyBase enemyBaseCorners: " + enemyBaseCorners);
+        else
+            uc.println("Communication downloadMapBoundariesAndEnemyBase enemyBaseCorners: " + enemyBaseCorners + " (" + Integer.toBinaryString(enemyBaseCorners) + ")");
     }
 
     void setExplorerMovementDir() {
