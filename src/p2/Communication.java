@@ -67,6 +67,7 @@ public class Communication {
             mapSouthBoundary = UNINITIALIZED_BOUNDARY,
             mapWestBoundary = UNINITIALIZED_BOUNDARY,
             mapEastBoundary = UNINITIALIZED_BOUNDARY;
+    final int HALF_OF_MIN_MAP = 15;
     int enemyBaseCorners = -1;
     Location enemyBaseLocation;
 
@@ -145,22 +146,21 @@ public class Communication {
         if(enemyBaseCorners != -1)
             return;
 
-        final int requiredDistance = 15;
         if(mapNorthBoundary != UNINITIALIZED_BOUNDARY && mapWestBoundary != UNINITIALIZED_BOUNDARY
-                && allyBaseLocation.x - mapWestBoundary <= requiredDistance
-                && mapNorthBoundary - allyBaseLocation.y <= requiredDistance)
+                && allyBaseLocation.x - mapWestBoundary <= HALF_OF_MIN_MAP
+                && mapNorthBoundary - allyBaseLocation.y <= HALF_OF_MIN_MAP)
             uploadEnemyBaseCorners(Direction.NORTHWEST);
         else if(mapNorthBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary != UNINITIALIZED_BOUNDARY
-                && mapEastBoundary - allyBaseLocation.x <= requiredDistance
-                && mapNorthBoundary - allyBaseLocation.y <= requiredDistance)
+                && mapEastBoundary - allyBaseLocation.x <= HALF_OF_MIN_MAP
+                && mapNorthBoundary - allyBaseLocation.y <= HALF_OF_MIN_MAP)
             uploadEnemyBaseCorners(Direction.NORTHEAST);
         else if(mapSouthBoundary != UNINITIALIZED_BOUNDARY && mapWestBoundary != UNINITIALIZED_BOUNDARY
-                && allyBaseLocation.x - mapWestBoundary <= requiredDistance
-                && allyBaseLocation.y - mapSouthBoundary <= requiredDistance)
+                && allyBaseLocation.x - mapWestBoundary <= HALF_OF_MIN_MAP
+                && allyBaseLocation.y - mapSouthBoundary <= HALF_OF_MIN_MAP)
             uploadEnemyBaseCorners(Direction.SOUTHWEST);
         else if(mapSouthBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary != UNINITIALIZED_BOUNDARY
-                && mapEastBoundary - allyBaseLocation.x <= requiredDistance
-                && allyBaseLocation.y - mapSouthBoundary <= requiredDistance)
+                && mapEastBoundary - allyBaseLocation.x <= HALF_OF_MIN_MAP
+                && allyBaseLocation.y - mapSouthBoundary <= HALF_OF_MIN_MAP)
             uploadEnemyBaseCorners(Direction.SOUTHEAST);
     }
 
@@ -170,8 +170,8 @@ public class Communication {
         else if(allyBaseCorner.isEqual(Direction.NORTHEAST)) enemyBaseCorners &= ~(1 << 1);
         else if(allyBaseCorner.isEqual(Direction.SOUTHWEST)) enemyBaseCorners &= ~(1 << 2);
         else if(allyBaseCorner.isEqual(Direction.SOUTHEAST)) enemyBaseCorners &= ~(1 << 3);
-
         uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNERS, enemyBaseCorners);
+        uc.println("Communication uploadEnemyBaseCorners " + enemyBaseCorners);
     }
 
     void uploadEnemyBaseLocation(Location enemyBaseLocation) {
