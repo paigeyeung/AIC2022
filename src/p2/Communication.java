@@ -97,13 +97,9 @@ public class Communication {
                 boundary--;
 
             Location newLocation;
-            if(direction.isEqual(Direction.NORTH))
+            if(direction.isEqual(Direction.NORTH) || direction.isEqual(Direction.SOUTH))
                 newLocation = new Location(selfLocation.x, boundary);
-            else if(direction.isEqual(Direction.SOUTH))
-                newLocation = new Location(selfLocation.x, boundary);
-            else if(direction.isEqual(Direction.WEST))
-                newLocation = new Location(boundary, selfLocation.y);
-            else if(direction.isEqual(Direction.EAST))
+            else if(direction.isEqual(Direction.WEST) || direction.isEqual(Direction.EAST))
                 newLocation = new Location(boundary, selfLocation.y);
             else {
                 uc.println("ERROR: Communication foundMapBoundaryRoughly direction not found");
