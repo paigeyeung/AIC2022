@@ -5,36 +5,58 @@ import aic2022.user.*;
 public abstract class AllyUnit {
     int formationNumber; // Automatically set by each player
     Formation[] formation; // Automatically set by each player
+
+    // 1 vs 1
 //    Formation[] formation1 = {
 //            new Formation(new Location(0, 0), UnitType.BARBARIAN)
 //    };
 //    Formation[] formation2 = {
 //            new Formation(new Location(0, 0), UnitType.MAGE)
 //    };
+
+    // 6 vs 6
     Formation[] formation1 = {
-            new Formation(new Location(-1, 2), UnitType.MAGE),
             new Formation(new Location(-1, 1), UnitType.MAGE),
             new Formation(new Location(-1, 0), UnitType.MAGE),
             new Formation(new Location(-1, -1), UnitType.MAGE),
-            new Formation(new Location(-1, -2), UnitType.MAGE),
-            new Formation(new Location(0, 2), UnitType.MAGE),
             new Formation(new Location(0, 1), UnitType.MAGE),
             new Formation(new Location(0, 0), UnitType.MAGE),
-            new Formation(new Location(0, -1), UnitType.MAGE),
-            new Formation(new Location(0, -2), UnitType.MAGE)
+            new Formation(new Location(0, -1), UnitType.MAGE)
     };
     Formation[] formation2 = {
-            new Formation(new Location(-1, 2), UnitType.BARBARIAN),
             new Formation(new Location(-1, 1), UnitType.BARBARIAN),
             new Formation(new Location(-1, 0), UnitType.BARBARIAN),
             new Formation(new Location(-1, -1), UnitType.BARBARIAN),
-            new Formation(new Location(-1, -2), UnitType.BARBARIAN),
-            new Formation(new Location(0, 2), UnitType.BARBARIAN),
             new Formation(new Location(0, 1), UnitType.BARBARIAN),
             new Formation(new Location(0, 0), UnitType.BARBARIAN),
-            new Formation(new Location(0, -1), UnitType.BARBARIAN),
-            new Formation(new Location(0, -2), UnitType.BARBARIAN)
+            new Formation(new Location(0, -1), UnitType.BARBARIAN)
     };
+
+    // 10 vs 10
+//    Formation[] formation1 = {
+//            new Formation(new Location(-1, 2), UnitType.MAGE),
+//            new Formation(new Location(-1, 1), UnitType.MAGE),
+//            new Formation(new Location(-1, 0), UnitType.MAGE),
+//            new Formation(new Location(-1, -1), UnitType.MAGE),
+//            new Formation(new Location(-1, -2), UnitType.MAGE),
+//            new Formation(new Location(0, 2), UnitType.MAGE),
+//            new Formation(new Location(0, 1), UnitType.MAGE),
+//            new Formation(new Location(0, 0), UnitType.MAGE),
+//            new Formation(new Location(0, -1), UnitType.MAGE),
+//            new Formation(new Location(0, -2), UnitType.MAGE)
+//    };
+//    Formation[] formation2 = {
+//            new Formation(new Location(-1, 2), UnitType.BARBARIAN),
+//            new Formation(new Location(-1, 1), UnitType.BARBARIAN),
+//            new Formation(new Location(-1, 0), UnitType.BARBARIAN),
+//            new Formation(new Location(-1, -1), UnitType.BARBARIAN),
+//            new Formation(new Location(-1, -2), UnitType.BARBARIAN),
+//            new Formation(new Location(0, 2), UnitType.BARBARIAN),
+//            new Formation(new Location(0, 1), UnitType.BARBARIAN),
+//            new Formation(new Location(0, 0), UnitType.BARBARIAN),
+//            new Formation(new Location(0, -1), UnitType.BARBARIAN),
+//            new Formation(new Location(0, -2), UnitType.BARBARIAN)
+//    };
 
     int selfSpawnIndex = -1;
 
