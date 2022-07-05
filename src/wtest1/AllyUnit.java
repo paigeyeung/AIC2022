@@ -115,8 +115,10 @@ public abstract class AllyUnit {
     }
 
     boolean tryAttack(Location attackLocation) {
+        Location selfLocation = uc.getLocation();
         if (uc.canAttack(attackLocation)) {
             uc.attack(attackLocation);
+            uc.setOrientation(selfLocation.directionTo(attackLocation));
             return true;
         }
         return false;
