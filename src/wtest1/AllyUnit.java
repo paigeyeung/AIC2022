@@ -2,12 +2,16 @@ package wtest1;
 
 import aic2022.user.*;
 public abstract class AllyUnit {
-//    enum Action {
-//        HOLD,
-//        EXPLORE,
-//        ATTACK,
-//        RETREAT
-//    }
+    Formation[] formation = {
+            new Formation(new Location(-3, 0), UnitType.RANGER),
+            new Formation(new Location(-2, 0), UnitType.EXPLORER),
+            new Formation(new Location(-1, 0), UnitType.BARBARIAN),
+            new Formation(new Location(0, 0), UnitType.ASSASSIN)
+    };
+
+    int selfSpawnIndex = -1;
+
+
 
     int[][] visited = new int[80][80];
     UnitController uc;
@@ -95,18 +99,62 @@ public abstract class AllyUnit {
         return false;
     }
 
-    void attackNearbyEnemies() {
+    Location getClosestEnemyLocation() {
+        Location myLocation = uc.getLocation();
         UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
+        Location closestEnemyLocation = null;
+        int closestEnemyDistance = Integer.MAX_VALUE;
         for (UnitInfo visibleEnemy : visibleEnemies) {
-            tryAttack(visibleEnemy.getLocation());
+            int distance = visibleEnemy.getLocation().distanceSquared(myLocation);
+            if(distance < closestEnemyDistance) {
+                closestEnemyLocation = visibleEnemy.getLocation();
+                closestEnemyDistance = distance;
+            }
+
             if(visibleEnemy.getType() == UnitType.BASE) {
                 communication.uploadEnemyBase(visibleEnemy.getLocation());
             }
         }
+        return closestEnemyLocation;
     }
 
-    void moveTo(Location location) {
+    void attackAndMoveToClosestEnemy() {
         Location myLocation = uc.getLocation();
+        Location closestEnemyLocation = getClosestEnemyLocation();
+        if(closestEnemyLocation == null) {
+            if(communication.getFormationDirectionIsRight())
+                closestEnemyLocation = new Location(myLocation.x - 100, myLocation.y);
+            else
+                closestEnemyLocation = new Location(myLocation.x + 100, myLocation.y);
+        }
+        int distanceSquared = myLocation.distanceSquared(closestEnemyLocation);
+        int attackRange = (int)uc.getType().getStat(UnitStat.ATTACK_RANGE);
+        uc.println("attackAndMoveToClosestEnemy distanceSquared: " + distanceSquared + ", attackRange: " + attackRange);
+        if(distanceSquared >= distanceSquared) {
+            moveTo(closestEnemyLocation, true, false);
+        }
+        if(uc.canAttack(closestEnemyLocation)) {
+            uc.attack(closestEnemyLocation);
+        }
+    }
+
+    void moveTo(Location location, boolean moveAfterArrived, boolean onlyMoveInDirection) {
+        Location myLocation = uc.getLocation();
+        uc.println("moveTo location: " + location + ", myLocation: " + myLocation);
+
+        if(!moveAfterArrived && myLocation.isEqual(location)) {
+            uc.println("moveTo arrived");
+            return;
+        }
+
+        if(onlyMoveInDirection) {
+            Direction dir = myLocation.directionTo(location);
+            if(uc.canMove(dir)) {
+                tryMove(dir);
+            }
+            return;
+        }
+
         int cost = myLocation.distanceSquared(location) + turnsNoMove * 5 + getVisited(myLocation) * 10;
         Direction dir = null;
         for (Direction d: directions) {
@@ -155,17 +203,5 @@ public abstract class AllyUnit {
             }
         }
         return combatScore;
-    }
-
-    int getAction() {
-        int allyCombatScore = getCombatScore(ally);
-        int enemyCombatScore = getCombatScore(opponent);
-        if (enemyCombatScore > 0.8 * allyCombatScore) {
-            return 0; // Retreat
-        }
-        else if (allyCombatScore > 1.5 * enemyCombatScore) {
-            return 3; // Attack
-        }
-        return 2; // Hold
     }
 }

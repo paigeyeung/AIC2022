@@ -3,6 +3,79 @@ package wtest1;
 import aic2022.user.*;
 
 public class Communication {
+    final int INDEX_SPAWN_INDEX = 10000;
+    final int INDEX_FORMATION_CENTER = 10001;
+    final int INDEX_FORMATION_DIRECTION = 10002;
+    final int INDEX_ACTION = 10003;
+
+    void increaseSpawnIndex() {
+        uc.writeOnSharedArray(INDEX_SPAWN_INDEX, uc.readOnSharedArray(INDEX_SPAWN_INDEX) + 1);
+    }
+    int getSpawnIndex() {
+        return uc.readOnSharedArray(INDEX_SPAWN_INDEX);
+    }
+    int getSelfSpawnIndex() {
+        int selfSpawnIndex = getSpawnIndex() - 1;
+        uc.println("getSelfSpawnIndex " + selfSpawnIndex);
+        return selfSpawnIndex;
+    }
+
+    void setFormation() {
+        Location formationCenter;
+        int formationDirection;
+        // These locations only work on Basic1
+        if(mapWestBoundary != UNINITIALIZED_BOUNDARY) {
+            // Top left base
+            formationCenter = new Location(allyBaseLocation.x, allyBaseLocation.y - 10);
+            formationDirection = 1;
+        }
+        else {
+            // Bottom right base
+            formationCenter = new Location(allyBaseLocation.x, allyBaseLocation.y + 11);
+            formationDirection = 0;
+        }
+        uc.writeOnSharedArray(INDEX_FORMATION_CENTER, encodeLocation(formationCenter));
+        uc.writeOnSharedArray(INDEX_FORMATION_DIRECTION, formationDirection);
+        uc.println("setFormation formationCenter: " + formationCenter + ", formationDirection: " + formationDirection);
+    }
+    Location getFormationCenter() {
+        return decodeLocation(uc.readOnSharedArray(INDEX_FORMATION_CENTER));
+    }
+    boolean getFormationDirectionIsRight() {
+        return uc.readOnSharedArray(INDEX_FORMATION_DIRECTION) == 0;
+    }
+    Location getSelfFormationLocation(Formation selfFormation) {
+        Location formationCenter = getFormationCenter();
+        boolean formationDirectionIsRight = getFormationDirectionIsRight();
+        Location selfFormationLocation;
+        if(formationDirectionIsRight)
+            selfFormationLocation = new Location(formationCenter.x - selfFormation.relativeLocation.x, formationCenter.y + selfFormation.relativeLocation.y);
+        else
+            selfFormationLocation = new Location(formationCenter.x + selfFormation.relativeLocation.x, formationCenter.y + selfFormation.relativeLocation.y);
+        uc.println("getSelfFormationLocation " + selfFormationLocation + ", formationCenter: " + formationCenter + ", formationDirectionIsRight: " + formationDirectionIsRight);
+        return selfFormationLocation;
+    }
+    Location getBattleLocation(Location selfFormationLocation) {
+        boolean formationDirectionIsRight = getFormationDirectionIsRight();
+        Location battleLocation;
+        if(formationDirectionIsRight)
+            battleLocation = new Location(selfFormationLocation.x - 8, selfFormationLocation.y);
+        else
+            battleLocation = new Location(selfFormationLocation.x + 8, selfFormationLocation.y);
+        uc.println("getBattleLocation " + battleLocation + ", formationDirectionIsRight: " + formationDirectionIsRight);
+        return battleLocation;
+    }
+
+    void setAction(int action) {
+        uc.writeOnSharedArray(INDEX_ACTION, action);
+        uc.println("setAction " + action);
+    }
+    int getAction() {
+        return uc.readOnSharedArray(INDEX_ACTION);
+    }
+
+
+
     UnitController uc;
 
     int visionRangeTilesInOneDirection;
@@ -33,7 +106,7 @@ public class Communication {
     final int INDEX_ENEMY_BASE_CORNERS = 5;
     final int INDEX_ENEMY_BASE_LOCATION = 6;
     final int INDEX_MOVEMENT = 7;
-//    final int INDEX_LOCATIONS = 1000;
+
 
     // Coordinate max value is 79 + 1000 < 2^11
     // Left 16 bits is x, right 16 bits is y

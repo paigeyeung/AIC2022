@@ -3,10 +3,6 @@ package wtest1;
 import aic2022.user.*;
 
 public class Base extends AllyUnit {
-    int explorersSpawned = 0;
-    int barbariansSpawned = 0;
-    int totalSpawned = 0;
-
     Base(UnitController uc) {
         super(uc);
     }
@@ -16,22 +12,28 @@ public class Base extends AllyUnit {
         communication.initializeMapBoundariesAndEnemyBaseCorners();
         communication.lookForMapBoundaries();
         communication.guessEnemyBaseCorners();
+
+        communication.setFormation();
+        communication.setAction(0);
     }
 
     void run() {
         communication.downloadMapBoundariesAndEnemyBase();
-        Direction dir = getRandomDirection();
 
-        if (uc.canSpawn(UnitType.EXPLORER, dir) &&
-                (explorersSpawned < 3 || explorersSpawned < 0.1*totalSpawned)) {
-            uc.spawn(UnitType.EXPLORER, dir);
-            explorersSpawned++;
-            totalSpawned++;
-        }
-        else if (uc.canSpawn(UnitType.BARBARIAN, dir)) {
-            uc.spawn(UnitType.BARBARIAN, dir);
-            barbariansSpawned++;
-            totalSpawned++;
+        if(uc.getRound() == 100)
+            communication.setAction(1);
+        else if(uc.getRound() == 150)
+            communication.setAction(2);
+
+        int spawnIndex = communication.getSpawnIndex();
+        if(spawnIndex >= formation.length)
+            return;
+
+        UnitType spawn = formation[spawnIndex].unitType;
+        Direction dir = getRandomDirection();
+        if (uc.canSpawn(spawn, dir)) {
+            uc.spawn(spawn, dir);
+            communication.increaseSpawnIndex();
         }
     }
 }
