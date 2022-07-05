@@ -2,22 +2,13 @@ package wtest1;
 
 import aic2022.user.*;
 public abstract class AllyUnit {
-    int formationGold = 300;
     int formationNumber; // Automatically set by each player
     Formation[] formation; // Automatically set by each player
     Formation[] formation1 = {
-            new Formation(new Location(-1, 1), UnitType.EXPLORER),
-            new Formation(new Location(0, 1), UnitType.BARBARIAN),
-            new Formation(new Location(-1, 0), UnitType.EXPLORER),
-            new Formation(new Location(0, 0), UnitType.BARBARIAN),
-            new Formation(new Location(-1, -1), UnitType.EXPLORER),
-            new Formation(new Location(0, -1), UnitType.BARBARIAN)
+            new Formation(new Location(0, 0), UnitType.EXPLORER)
     };
     Formation[] formation2 = {
-            new Formation(new Location(-1, 1), UnitType.RANGER),
-            new Formation(new Location(0, 1), UnitType.MAGE),
-            new Formation(new Location(-1, 0), UnitType.RANGER),
-            new Formation(new Location(0, 0), UnitType.MAGE)
+            new Formation(new Location(0, 0), UnitType.ASSASSIN)
     };
 
     int selfSpawnIndex = -1;

@@ -12,6 +12,7 @@ public abstract class AllyUnit {
     int[][] visited = new int[80][80];
     UnitController uc;
     Team opponent;
+    Team neutral;
     Team ally;
 
     Communication communication;
@@ -25,6 +26,7 @@ public abstract class AllyUnit {
     AllyUnit(UnitController uc){
         this.uc = uc;
         opponent = uc.getOpponent();
+        neutral = Team.NEUTRAL;
         ally = uc.getTeam();
         communication = new Communication(uc);
     }
@@ -95,14 +97,41 @@ public abstract class AllyUnit {
         return false;
     }
 
-    void attackNearbyEnemies() {
+    void attackNearbyUnits() {
+        UnitInfo highestAttackScoreUnit = null;
+        float highestAttackScore = 0;
+
         UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
         for (UnitInfo visibleEnemy : visibleEnemies) {
-            tryAttack(visibleEnemy.getLocation());
+            float attackScore = getAttackScore(visibleEnemy);
+            if(highestAttackScoreUnit == null || attackScore > highestAttackScore) {
+                highestAttackScoreUnit = visibleEnemy;
+                highestAttackScore = attackScore;
+            }
+
             if(visibleEnemy.getType() == UnitType.BASE) {
                 communication.uploadEnemyBase(visibleEnemy.getLocation());
             }
         }
+
+        UnitInfo[] visibleNeutrals = uc.senseUnits(neutral);
+        for (UnitInfo visibleNeutral : visibleNeutrals) {
+            float attackScore = getAttackScore(visibleNeutral);
+            if(highestAttackScoreUnit == null || attackScore > highestAttackScore) {
+                highestAttackScoreUnit = visibleNeutral;
+                highestAttackScore = attackScore;
+            }
+        }
+
+        if(highestAttackScoreUnit != null)
+            tryAttack(highestAttackScoreUnit.getLocation());
+    }
+
+    float getAttackScore(UnitInfo enemyOrNeutralUnit) {
+        int health = enemyOrNeutralUnit.getHealth();
+        int maxHealth = (int)enemyOrNeutralUnit.getType().getStat(UnitStat.MAX_HEALTH);
+        float percentHealth = health / maxHealth;
+        return 1 - percentHealth;
     }
 
     void moveTo(Location location) {

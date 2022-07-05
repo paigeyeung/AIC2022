@@ -51,7 +51,7 @@ public class Explorer extends AllyUnit {
             }
         }
 
-        attackNearbyEnemies();
+        attackNearbyUnits();
         tryAdjMoves(movementDir);
     }
 }
