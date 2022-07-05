@@ -27,6 +27,8 @@ public class Troop extends AllyUnit {
     void run() {
         communication.downloadMapBoundariesAndEnemyBase();
 
+        communication.reportAlive();
+
         int action = communication.getAction();
         uc.println("action " + action);
         if(action == 0) {

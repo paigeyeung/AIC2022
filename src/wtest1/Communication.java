@@ -8,6 +8,7 @@ public class Communication {
     final int INDEX_FORMATION_CENTER = 10002;
     final int INDEX_FORMATION_DIRECTION = 10003;
     final int INDEX_ACTION = 10004;
+    final int INDEX_NUM_UNITS_ALIVE = 10005;
 
     void increaseSpawnIndex() {
         uc.writeOnSharedArray(INDEX_SPAWN_INDEX, uc.readOnSharedArray(INDEX_SPAWN_INDEX) + 1);
@@ -81,6 +82,16 @@ public class Communication {
     }
     int getAction() {
         return uc.readOnSharedArray(INDEX_ACTION);
+    }
+
+    void reportAlive() {
+        int numUnitsAlive = uc.readOnSharedArray(INDEX_NUM_UNITS_ALIVE) + 1;
+        uc.writeOnSharedArray(INDEX_NUM_UNITS_ALIVE, numUnitsAlive);
+    }
+    int resetNumUnitsAlive() {
+        int numUnitsAlive = uc.readOnSharedArray(INDEX_NUM_UNITS_ALIVE);
+        uc.writeOnSharedArray(INDEX_NUM_UNITS_ALIVE, 0);
+        return numUnitsAlive;
     }
 
 

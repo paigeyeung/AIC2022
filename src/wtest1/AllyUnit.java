@@ -134,17 +134,19 @@ public abstract class AllyUnit {
         Location closestEnemyLocation = getClosestEnemyLocation();
         if(closestEnemyLocation == null) {
             if(communication.getFormationDirectionIsRight())
-                closestEnemyLocation = new Location(myLocation.x - 100, myLocation.y);
+                closestEnemyLocation = new Location(myLocation.x - 3, myLocation.y);
             else
-                closestEnemyLocation = new Location(myLocation.x + 100, myLocation.y);
+                closestEnemyLocation = new Location(myLocation.x + 3, myLocation.y);
         }
         int distanceSquared = myLocation.distanceSquared(closestEnemyLocation);
         int attackRange = (int)uc.getType().getStat(UnitStat.ATTACK_RANGE);
         uc.println("attackAndMoveToClosestEnemy distanceSquared: " + distanceSquared + ", attackRange: " + attackRange);
-        if(distanceSquared >= distanceSquared) {
+        if(distanceSquared > attackRange) {
+            uc.println("moving because too far");
             moveTo(closestEnemyLocation, true, false);
         }
         if(uc.canAttack(closestEnemyLocation)) {
+            uc.println("attacking");
             uc.attack(closestEnemyLocation);
         }
     }
