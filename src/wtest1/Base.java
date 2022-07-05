@@ -13,16 +13,20 @@ public class Base extends AllyUnit {
         communication.lookForMapBoundaries();
         communication.guessEnemyBaseCorners();
 
-        communication.setFormation();
+        formationNumber = communication.setFormation();
+        if(formationNumber == 1)
+            formation = formation1;
+        else
+            formation = formation2;
         communication.setAction(0);
     }
 
     void run() {
         communication.downloadMapBoundariesAndEnemyBase();
 
-        if(uc.getRound() == 100)
+        if(200 + uc.getRound() == formationGold + 50)
             communication.setAction(1);
-        else if(uc.getRound() == 150)
+        else if(200 + uc.getRound() == formationGold + 75)
             communication.setAction(2);
 
         int spawnIndex = communication.getSpawnIndex();
@@ -31,6 +35,7 @@ public class Base extends AllyUnit {
 
         UnitType spawn = formation[spawnIndex].unitType;
         Direction dir = getRandomDirection();
+        uc.println("spawn: " + spawn + ", dir: " + dir);
         if (uc.canSpawn(spawn, dir)) {
             uc.spawn(spawn, dir);
             communication.increaseSpawnIndex();

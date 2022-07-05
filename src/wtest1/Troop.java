@@ -15,6 +15,11 @@ public class Troop extends AllyUnit {
         communication.downloadMapBoundariesAndEnemyBase();
 
         selfSpawnIndex = communication.getSelfSpawnIndex();
+        formationNumber = communication.getFormationNumber();
+        if(formationNumber == 1)
+            formation = formation1;
+        else
+            formation = formation2;
         formationLocation = communication.getSelfFormationLocation(formation[selfSpawnIndex]);
         battleLocation = communication.getBattleLocation(formationLocation);
     }

@@ -4,9 +4,10 @@ import aic2022.user.*;
 
 public class Communication {
     final int INDEX_SPAWN_INDEX = 10000;
-    final int INDEX_FORMATION_CENTER = 10001;
-    final int INDEX_FORMATION_DIRECTION = 10002;
-    final int INDEX_ACTION = 10003;
+    final int INDEX_FORMATION_NUMBER = 10001;
+    final int INDEX_FORMATION_CENTER = 10002;
+    final int INDEX_FORMATION_DIRECTION = 10003;
+    final int INDEX_ACTION = 10004;
 
     void increaseSpawnIndex() {
         uc.writeOnSharedArray(INDEX_SPAWN_INDEX, uc.readOnSharedArray(INDEX_SPAWN_INDEX) + 1);
@@ -20,23 +21,31 @@ public class Communication {
         return selfSpawnIndex;
     }
 
-    void setFormation() {
+    int setFormation() {
+        int formationNumber;
         Location formationCenter;
         int formationDirection;
         // These locations only work on Basic1
         if(mapWestBoundary != UNINITIALIZED_BOUNDARY) {
             // Top left base
+            formationNumber = 1;
             formationCenter = new Location(allyBaseLocation.x, allyBaseLocation.y - 10);
             formationDirection = 1;
         }
         else {
             // Bottom right base
+            formationNumber = 2;
             formationCenter = new Location(allyBaseLocation.x, allyBaseLocation.y + 11);
             formationDirection = 0;
         }
+        uc.writeOnSharedArray(INDEX_FORMATION_NUMBER, formationNumber);
         uc.writeOnSharedArray(INDEX_FORMATION_CENTER, encodeLocation(formationCenter));
         uc.writeOnSharedArray(INDEX_FORMATION_DIRECTION, formationDirection);
-        uc.println("setFormation formationCenter: " + formationCenter + ", formationDirection: " + formationDirection);
+        uc.println("setFormation formationNumber: " + formationNumber + ", formationCenter: " + formationCenter + ", formationDirection: " + formationDirection);
+        return formationNumber;
+    }
+    int getFormationNumber() {
+        return uc.readOnSharedArray(INDEX_FORMATION_NUMBER);
     }
     Location getFormationCenter() {
         return decodeLocation(uc.readOnSharedArray(INDEX_FORMATION_CENTER));
