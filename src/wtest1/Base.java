@@ -27,13 +27,13 @@ public class Base extends AllyUnit {
     void run() {
         communication.downloadMapBoundariesAndEnemyBase();
 
-        if(uc.getRound() == 200)
+        if(uc.getRound() == 950)
             communication.setAction(1);
-        else if(uc.getRound() == 250) {
+        else if(uc.getRound() == 1000) {
             communication.setAction(2);
             lastNumUnitsAlive = communication.resetNumUnitsAlive();
         }
-        else if(uc.getRound() > 250) {
+        else if(uc.getRound() > 1000) {
             int numUnitsAlive = communication.resetNumUnitsAlive();
             if(numUnitsAlive == 0) {
                 noUnitsAliveRounds++;

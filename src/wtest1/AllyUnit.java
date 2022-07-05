@@ -1,14 +1,25 @@
 package wtest1;
 
 import aic2022.user.*;
+
 public abstract class AllyUnit {
     int formationNumber; // Automatically set by each player
     Formation[] formation; // Automatically set by each player
     Formation[] formation1 = {
-            new Formation(new Location(0, 0), UnitType.EXPLORER)
+            new Formation(new Location(-1, 1), UnitType.BARBARIAN),
+            new Formation(new Location(-1, 0), UnitType.BARBARIAN),
+            new Formation(new Location(-1, -1), UnitType.BARBARIAN),
+            new Formation(new Location(0, 1), UnitType.BARBARIAN),
+            new Formation(new Location(0, 0), UnitType.BARBARIAN),
+            new Formation(new Location(0, -1), UnitType.BARBARIAN)
     };
     Formation[] formation2 = {
-            new Formation(new Location(0, 0), UnitType.ASSASSIN)
+            new Formation(new Location(-1, 1), UnitType.KNIGHT),
+            new Formation(new Location(-1, 0), UnitType.KNIGHT),
+            new Formation(new Location(-1, -1), UnitType.KNIGHT),
+            new Formation(new Location(0, 1), UnitType.KNIGHT),
+            new Formation(new Location(0, 0), UnitType.KNIGHT),
+            new Formation(new Location(0, -1), UnitType.KNIGHT)
     };
 
     int selfSpawnIndex = -1;
@@ -16,13 +27,18 @@ public abstract class AllyUnit {
 
 
     int[][] visited = new int[80][80];
-    UnitController uc;
-    Team opponent;
-    Team ally;
 
+    UnitController uc;
     Communication communication;
 
+    Team opponent;
+    Team neutral;
+    Team ally;
+
     Direction[] directions = Direction.values();
+
+    UnitType selfType;
+    int selfAttackRange, selfMinAttackRange;
 
     int turnsNoMove = 0;
 
@@ -30,9 +46,14 @@ public abstract class AllyUnit {
 
     AllyUnit(UnitController uc){
         this.uc = uc;
-        opponent = uc.getOpponent();
-        ally = uc.getTeam();
         communication = new Communication(uc);
+        opponent = uc.getOpponent();
+        neutral = Team.NEUTRAL;
+        ally = uc.getTeam();
+        selfType = uc.getType();
+        selfAttackRange = (int)selfType.getStat(UnitStat.ATTACK_RANGE);
+        selfMinAttackRange = (int)selfType.getStat(UnitStat.MIN_ATTACK_RANGE);
+        uc.println("selfAttackRange: " + selfAttackRange + ", selfMinAttackRange: " + selfMinAttackRange);
     }
 
     abstract void runFirstTurn();
@@ -101,46 +122,90 @@ public abstract class AllyUnit {
         return false;
     }
 
-    Location getClosestEnemyLocation(boolean considerMinAttackRange) {
-        Location myLocation = uc.getLocation();
-        int minAttackRange = (int)uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE);
+    boolean attackNearbyEnemyOrNeutral() {
+        UnitInfo highestAttackScoreUnit = null;
+        float highestAttackScore = 0;
+
         UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
-        Location closestEnemyLocation = null;
-        int closestEnemyDistance = Integer.MAX_VALUE;
         for (UnitInfo visibleEnemy : visibleEnemies) {
-            int distance = visibleEnemy.getLocation().distanceSquared(myLocation);
-            if(distance < closestEnemyDistance && (!considerMinAttackRange || distance >= minAttackRange)) {
-                closestEnemyLocation = visibleEnemy.getLocation();
-                closestEnemyDistance = distance;
+            float attackScore = getAttackScore(visibleEnemy);
+            if(attackScore > highestAttackScore) {
+                highestAttackScoreUnit = visibleEnemy;
+                highestAttackScore = attackScore;
             }
 
             if(visibleEnemy.getType() == UnitType.BASE) {
                 communication.uploadEnemyBase(visibleEnemy.getLocation());
             }
         }
-        return closestEnemyLocation;
+
+        UnitInfo[] visibleNeutrals = uc.senseUnits(neutral);
+        for (UnitInfo visibleNeutral : visibleNeutrals) {
+            float attackScore = getAttackScore(visibleNeutral);
+            if(attackScore > highestAttackScore) {
+                highestAttackScoreUnit = visibleNeutral;
+                highestAttackScore = attackScore;
+            }
+        }
+
+        if(highestAttackScoreUnit != null) {
+            uc.println("attackNearbyEnemyOrNeutral highestAttackScoreUnit: " + highestAttackScoreUnit.getLocation() + ", highestAttackScore: " + highestAttackScore);
+            tryAttack(highestAttackScoreUnit.getLocation());
+            return true;
+        }
+        uc.println("attackNearbyEnemyOrNeutral highestAttackScoreUnit: null");
+        return false;
     }
 
-    void attackAndMoveToClosestEnemy() {
-        Location myLocation = uc.getLocation();
-        Location closestEnemyLocation = getClosestEnemyLocation(true);
-        if(closestEnemyLocation == null) {
-            if(communication.getFormationDirectionIsRight())
-                closestEnemyLocation = new Location(myLocation.x - 3, myLocation.y);
-            else
-                closestEnemyLocation = new Location(myLocation.x + 3, myLocation.y);
+    float getAttackScore(UnitInfo enemyOrNeutralUnit) {
+        Location selfLocation = uc.getLocation();
+        int distanceSquared = selfLocation.distanceSquared(enemyOrNeutralUnit.getLocation());
+        if(distanceSquared > selfAttackRange || distanceSquared < selfMinAttackRange) {
+            return 0;
         }
-        int distanceSquared = myLocation.distanceSquared(closestEnemyLocation);
-        int attackRange = (int)uc.getType().getStat(UnitStat.ATTACK_RANGE);
-        uc.println("attackAndMoveToClosestEnemy distanceSquared: " + distanceSquared + ", attackRange: " + attackRange);
-        if(distanceSquared > attackRange) {
-            uc.println("moving because too far");
-            moveTo(closestEnemyLocation, true, false);
+
+        int health = enemyOrNeutralUnit.getHealth();
+        int maxHealth = (int)enemyOrNeutralUnit.getType().getStat(UnitStat.MAX_HEALTH);
+        float percentHealth = health / maxHealth;
+        return 2 - percentHealth;
+    }
+
+    UnitInfo getClosestEnemyOrNeutral(boolean considerMinAttackRange) {
+        Location selfLocation = uc.getLocation();
+        UnitInfo closestUnit = null;
+        int closestUnitDistance = Integer.MAX_VALUE;
+
+        UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
+        for (UnitInfo visibleEnemy : visibleEnemies) {
+            int distance = visibleEnemy.getLocation().distanceSquared(selfLocation);
+            if(distance < closestUnitDistance && (!considerMinAttackRange || distance >= selfMinAttackRange)) {
+                closestUnit = visibleEnemy;
+                closestUnitDistance = distance;
+            }
         }
-        if(uc.canAttack(closestEnemyLocation)) {
-            uc.println("attacking");
-            uc.attack(closestEnemyLocation);
+
+        UnitInfo[] visibleNeutrals = uc.senseUnits(neutral);
+        for (UnitInfo visibleNeutral : visibleNeutrals) {
+            int distance = visibleNeutral.getLocation().distanceSquared(selfLocation);
+            if(distance < closestUnitDistance && (!considerMinAttackRange || distance >= selfMinAttackRange)) {
+                closestUnit = visibleNeutral;
+                closestUnitDistance = distance;
+            }
         }
+
+        return closestUnit;
+    }
+
+    boolean attackAndMoveToClosestEnemyOrNeutral() {
+        if(attackNearbyEnemyOrNeutral())
+            return true;
+
+        UnitInfo closestEnemyOrNeutral = getClosestEnemyOrNeutral(true);
+        if(closestEnemyOrNeutral != null) {
+            moveTo(closestEnemyOrNeutral.getLocation(), true, false);
+            return true;
+        }
+        return false;
     }
 
     void moveTo(Location location, boolean moveAfterArrived, boolean onlyMoveInDirection) {

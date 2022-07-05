@@ -38,7 +38,7 @@ public class Troop extends AllyUnit {
             moveTo(battleLocation, false, true);
         }
         else {
-            attackAndMoveToClosestEnemy();
+            attackAndMoveToClosestEnemyOrNeutral();
         }
     }
 }

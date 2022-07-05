@@ -33,5 +33,7 @@ public class Base extends AllyUnit {
             barbariansSpawned++;
             totalSpawned++;
         }
+
+        attackNearbyEnemyOrNeutral();
     }
 }

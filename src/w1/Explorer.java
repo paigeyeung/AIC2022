@@ -19,8 +19,10 @@ public class Explorer extends AllyUnit {
         communication.downloadMapBoundariesAndEnemyBase();
         communication.lookForMapBoundaries();
 
-        Location myLocation = uc.getLocation();
+        if(attackAndMoveToClosestEnemyOrNeutral())
+            return;
 
+        Location myLocation = uc.getLocation();
         Direction movementDir = communication.getExplorerMovementDir();
 
         if (getCombatScore(opponent) >= getCombatScore(ally)) {
@@ -51,7 +53,6 @@ public class Explorer extends AllyUnit {
             }
         }
 
-        attackNearbyUnits();
         tryAdjMoves(movementDir);
     }
 }
