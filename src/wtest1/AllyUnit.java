@@ -180,10 +180,34 @@ public abstract class AllyUnit {
             return 0;
         }
 
+        if(selfType == UnitType.MAGE)
+            return getAttackScoreMage(enemyOrNeutralUnit.getLocation());
+        return getAttackScoreRaw(enemyOrNeutralUnit);
+    }
+
+    float getAttackScoreRaw(UnitInfo enemyOrNeutralUnit) {
         int health = enemyOrNeutralUnit.getHealth();
         int maxHealth = (int)enemyOrNeutralUnit.getType().getStat(UnitStat.MAX_HEALTH);
         float percentHealth = health / maxHealth;
         return 2 - percentHealth;
+    }
+
+    float getAttackScoreMage(Location centerLocation) {
+        float totalAttackScore = 0;
+        for(int i = -1; i <= 1; i++) {
+            for(int j = -1; j <= 1; j++) {
+                Location location = new Location(centerLocation.x + i, centerLocation.y + j);
+                UnitInfo unitAtLocation = uc.senseUnitAtLocation(location);
+                if(unitAtLocation == null)
+                    continue;
+                Team unitTeamAtLocation = unitAtLocation.getTeam();
+                if(unitTeamAtLocation.equals(ally))
+                    totalAttackScore -= getAttackScoreRaw(unitAtLocation);
+                else
+                    totalAttackScore += getAttackScoreRaw(unitAtLocation);
+            }
+        }
+        return totalAttackScore;
     }
 
     UnitInfo getClosestEnemyOrNeutral(boolean considerMinAttackRange) {
