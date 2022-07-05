@@ -110,14 +110,15 @@ public abstract class AllyUnit {
         return false;
     }
 
-    Location getClosestEnemyLocation() {
+    Location getClosestEnemyLocation(boolean considerMinAttackRange) {
         Location myLocation = uc.getLocation();
+        int minAttackRange = (int)uc.getType().getStat(UnitStat.MIN_ATTACK_RANGE);
         UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
         Location closestEnemyLocation = null;
         int closestEnemyDistance = Integer.MAX_VALUE;
         for (UnitInfo visibleEnemy : visibleEnemies) {
             int distance = visibleEnemy.getLocation().distanceSquared(myLocation);
-            if(distance < closestEnemyDistance) {
+            if(distance < closestEnemyDistance && (!considerMinAttackRange || distance >= minAttackRange)) {
                 closestEnemyLocation = visibleEnemy.getLocation();
                 closestEnemyDistance = distance;
             }
@@ -131,7 +132,7 @@ public abstract class AllyUnit {
 
     void attackAndMoveToClosestEnemy() {
         Location myLocation = uc.getLocation();
-        Location closestEnemyLocation = getClosestEnemyLocation();
+        Location closestEnemyLocation = getClosestEnemyLocation(true);
         if(closestEnemyLocation == null) {
             if(communication.getFormationDirectionIsRight())
                 closestEnemyLocation = new Location(myLocation.x - 3, myLocation.y);
