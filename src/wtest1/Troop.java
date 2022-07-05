@@ -5,6 +5,7 @@ import aic2022.user.*;
 public class Troop extends AllyUnit {
     Location formationLocation = null;
     Location battleLocation = null;
+    Location centerLocation = null;
 
     Troop(UnitController uc) {
         super(uc);
@@ -22,6 +23,7 @@ public class Troop extends AllyUnit {
             formation = formation2;
         formationLocation = communication.getSelfFormationLocation(formation[selfSpawnIndex]);
         battleLocation = communication.getBattleLocation(formationLocation);
+        centerLocation = communication.getCenterLocation(formationLocation);
     }
 
     void run() {
@@ -38,7 +40,9 @@ public class Troop extends AllyUnit {
             moveTo(battleLocation, false, true);
         }
         else {
-            attackAndMoveToClosestEnemyOrNeutral();
+            if(!attackAndMoveToClosestEnemyOrNeutral()) {
+                moveTo(centerLocation, true, false);
+            }
         }
     }
 }

@@ -75,6 +75,16 @@ public class Communication {
         uc.println("getBattleLocation " + battleLocation + ", formationDirectionIsRight: " + formationDirectionIsRight);
         return battleLocation;
     }
+    Location getCenterLocation(Location selfFormationLocation) {
+        boolean formationDirectionIsRight = getFormationDirectionIsRight();
+        Location centerLocation;
+        if(formationDirectionIsRight)
+            centerLocation = new Location(selfFormationLocation.x - 10, selfFormationLocation.y);
+        else
+            centerLocation = new Location(selfFormationLocation.x + 10, selfFormationLocation.y);
+        uc.println("getCenterLocation " + centerLocation + ", formationDirectionIsRight: " + formationDirectionIsRight);
+        return centerLocation;
+    }
 
     void setAction(int action) {
         uc.writeOnSharedArray(INDEX_ACTION, action);
