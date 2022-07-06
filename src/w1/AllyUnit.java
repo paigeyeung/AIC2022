@@ -14,9 +14,7 @@ public abstract class AllyUnit {
     UnitController uc;
     Communication communication;
 
-    Team opponent;
-    Team neutral;
-    Team ally;
+    Team ally, neutral, opponent;
 
     Direction[] directions = Direction.values();
 
@@ -30,9 +28,9 @@ public abstract class AllyUnit {
     AllyUnit(UnitController uc){
         this.uc = uc;
         communication = new Communication(uc);
-        opponent = uc.getOpponent();
-        neutral = Team.NEUTRAL;
         ally = uc.getTeam();
+        neutral = Team.NEUTRAL;
+        opponent = uc.getOpponent();
         selfType = uc.getType();
         selfAttackRange = (int)selfType.getStat(UnitStat.ATTACK_RANGE);
         selfMinAttackRange = (int)selfType.getStat(UnitStat.MIN_ATTACK_RANGE);

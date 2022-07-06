@@ -1,4 +1,4 @@
-package wtest1;
+package wtest_formation;
 
 import aic2022.user.*;
 public class Formation {

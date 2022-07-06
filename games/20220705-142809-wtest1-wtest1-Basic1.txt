@@ -1,8 +1,8 @@
 AIC2022
 Basic1
 134
-wtest1
-wtest1
+wtest_formation
+wtest_formation
 A
 Destruction
 30 30
