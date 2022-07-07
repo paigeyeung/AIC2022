@@ -13,9 +13,7 @@ public class UnitPlayer {
         AllyUnit u = null;
 
         if(type == UnitType.BASE) u = new Base(uc);
-        else if(type == UnitType.EXPLORER) u = new Troop(uc);
-        else if(type == UnitType.BARBARIAN) u = new Barbarian(uc);
-        else uc.println("😢🐻‍❄️");
+        else u = new Troop(uc);
 
         boolean firstTurn = true;
         while(true) {
@@ -24,9 +22,7 @@ public class UnitPlayer {
                     u.runFirstTurn();
                     firstTurn = false;
                 }
-                u.runBefore();
                 u.run();
-                u.runAfter();
             }
             uc.yield();
         }
