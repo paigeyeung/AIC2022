@@ -32,8 +32,6 @@ public class Communication {
     final int INDEX_MAP_EAST_BOUNDARY = 4;
     final int INDEX_ENEMY_BASE_CORNER = 5;
     final int INDEX_ENEMY_BASE_LOCATION = 6;
-    final int INDEX_MOVEMENT = 7;
-//    final int INDEX_LOCATIONS = 1000;
 
     // Coordinate max value is 79 + 1000 < 2^11
     // Left 16 bits is x, right 16 bits is y
@@ -196,83 +194,5 @@ public class Communication {
         }
 
         uc.println("Communication downloadMapBoundariesAndEnemyBase mapNorthBoundary: " + mapNorthBoundary + ", mapSouthBoundary: " + mapSouthBoundary + ", mapWestBoundary: " + mapWestBoundary + ", mapEastBoundary: " + mapEastBoundary + ", enemyBaseCorner: " + enemyBaseCorner + (enemyBaseCorner == -2 ? ", enemyBaseLocation: " + enemyBaseLocation : ""));
-    }
-
-    void setExplorerMovementDir() {
-        int randomNumber = (int)(Math.random()*8);
-        int k = 0;
-
-        Direction[] directions = Direction.values();
-        while(foundBoundary(directions[randomNumber]) && k < 10) {
-            randomNumber = (int)(Math.random()*8);
-            k++;
-        }
-
-        uc.writeOnSharedArray(INDEX_MOVEMENT, (randomNumber + 1) << 12);
-        uc.println("Communication setExplorerMovementDir: " + directions[randomNumber].toString());
-    }
-
-    Direction getExplorerMovementDir() {
-        int idx = uc.readOnSharedArray(INDEX_MOVEMENT) >> 12;
-        if(idx != 0) return Direction.values()[idx-1];
-        return null;
-    }
-    void setRandomAttackMovementDir() {
-        int randomNumber = (int)(Math.random()*8) + 1;
-        uc.writeOnSharedArray(INDEX_MOVEMENT, randomNumber << 8);
-    }
-
-    void setAttackMovementDir(Direction dir) {
-        uc.writeOnSharedArray(INDEX_MOVEMENT, (dir.ordinal() << 8) + 1);
-    }
-
-    Direction getAttackMovementDir() {
-        int idx = uc.readOnSharedArray(INDEX_MOVEMENT) >> 8;
-        if(idx != 0) return Direction.values()[idx-1];
-        return null;
-    }
-
-    boolean foundBoundary(Direction dir) {
-        boolean found = (dir.isEqual(Direction.EAST) && mapEastBoundary != UNINITIALIZED_BOUNDARY) ||
-                (dir.isEqual(Direction.NORTH) && mapNorthBoundary != UNINITIALIZED_BOUNDARY) ||
-                (dir.isEqual(Direction.SOUTH) && mapSouthBoundary != UNINITIALIZED_BOUNDARY) ||
-                (dir.isEqual(Direction.WEST) && mapWestBoundary != UNINITIALIZED_BOUNDARY) ||
-                (dir.isEqual(Direction.NORTHEAST) && mapNorthBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary != UNINITIALIZED_BOUNDARY) ||
-                (dir.isEqual(Direction.NORTHWEST) && mapNorthBoundary != UNINITIALIZED_BOUNDARY && mapWestBoundary != UNINITIALIZED_BOUNDARY) ||
-                (dir.isEqual(Direction.SOUTHEAST) && mapSouthBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary != UNINITIALIZED_BOUNDARY) ||
-                (dir.isEqual(Direction.SOUTHWEST) && mapSouthBoundary != UNINITIALIZED_BOUNDARY && mapWestBoundary != UNINITIALIZED_BOUNDARY);
-
-        uc.println("Communication found boundary " + dir + "? " + found);
-        return found;
-    }
-
-    boolean allBoundariesFound() {
-        return mapEastBoundary != UNINITIALIZED_BOUNDARY &&
-                mapWestBoundary != UNINITIALIZED_BOUNDARY &&
-                mapNorthBoundary != UNINITIALIZED_BOUNDARY &&
-                mapSouthBoundary != UNINITIALIZED_BOUNDARY;
-    }
-
-    int distanceToBoundary(Location location, Direction direction) {
-        if(direction.isEqual(Direction.NORTH)) {
-            int dist = (mapNorthBoundary - location.y);
-            return Integer.min(6400, dist*dist);
-        }
-        else if(direction.isEqual(Direction.SOUTH)) {
-            int dist = (mapSouthBoundary - location.y);
-            return Integer.min(6400, dist*dist);
-        }
-        else if(direction.isEqual(Direction.WEST)) {
-            int dist = (mapWestBoundary - location.x);
-            return Integer.min(6400, dist*dist);
-        }
-        else if(direction.isEqual(Direction.EAST)) {
-            int dist = (mapEastBoundary - location.x);
-            return Integer.min(6400, dist*dist);
-        }
-        else {
-            uc.println("Not a valid boundary direction");
-            return Integer.MAX_VALUE;
-        }
     }
 }
