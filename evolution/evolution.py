@@ -1,21 +1,26 @@
+# import re
 import random
 
-# https://stackoverflow.com/a/17548459/3696113
-def inplace_change(filename, old_string, new_string):
-    # Safely read the input filename using 'with'
-    with open(filename) as f:
-        s = f.read()
-        if old_string not in s:
-            print('"{old_string}" not found in {filename}.'.format(**locals()))
-            return
-
-    # Safely write the changed content, if found in the file
-    with open(filename, 'w') as f:
-        print('Changing "{old_string}" to "{new_string}" in {filename}'.format(**locals()))
-        s = s.replace(old_string, new_string)
-        f.write(s)
-
+SOURCE_FILENAME = "Troop.java"
+COPY_FILENAME = "../src/wtest_evolution/Troop.java"
+WEIGHTS_START = "/*weights_start*/"
+WEIGHTS_END = "/*weights_end*/"
+BIASES_START = "/*biases_start*/"
+BIASES_END = "/*biases_end*/"
 LAYER_SIZES = [7, 16, 16, 9]
+
+# https://stackoverflow.com/a/17548459/3696113
+# https://stackoverflow.com/a/24558626/3696113
+def copy_file(weights_string, biases_string):
+    with open(SOURCE_FILENAME, "rt") as fin:
+        with open(COPY_FILENAME, "wt") as fout:
+            for line in fin:
+                if WEIGHTS_START in line and WEIGHTS_END in line:
+                    fout.write(WEIGHTS_START + weights_string + WEIGHTS_END + "\n")
+                elif BIASES_START in line and BIASES_END in line:
+                    fout.write(BIASES_START + biases_string + BIASES_END + "\n")
+                else:
+                    fout.write(line)
 
 def generate_random_weights():
     weights = []
@@ -43,9 +48,10 @@ def generate_random_biases():
         biases.append(layer)
     return biases
 
+def array_to_string(array):
+    return str(array).replace("[", "{").replace("]", "}")
+
+print("making troop copy")
 weights = generate_random_weights()
-bias = generate_random_biases()
-print("weights")
-print(str(weights).replace("[", "{").replace("]", "}"))
-print("bias")
-print(str(bias).replace("[", "{").replace("]", "}"))
+biases = generate_random_biases()
+copy_file("double[][][] weights = " + array_to_string(weights) + ";", "double[][] biases = " + array_to_string(biases) + ";")
