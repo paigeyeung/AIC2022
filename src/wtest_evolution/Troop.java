@@ -42,9 +42,12 @@ public class Troop extends AllyUnit {
         Direction outputDirection = getDirectionFromOutputs(outputs);
         uc.println("outputDirection " + outputDirection);
 
+        if(nearestEnemyOrNeutral != null) {
+            uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
+            int damage = tryAttack(nearestEnemyOrNeutral.getLocation());
+            communication.addScore(damage);
+        }
         tryMove(outputDirection);
-        if(nearestEnemyOrNeutral != null)
-            tryAttack(nearestEnemyOrNeutral.getLocation());
     }
 
     int[] getInputData(UnitInfo nearestEnemyOrNeutral) {

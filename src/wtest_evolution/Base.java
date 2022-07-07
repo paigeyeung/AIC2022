@@ -16,5 +16,12 @@ public class Base extends AllyUnit {
     void run() {
         if(uc.getRound() == 1)
             uc.spawn(UnitType.EXPLORER, Direction.SOUTH);
+
+        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral();
+        if(nearestEnemyOrNeutral != null) {
+            uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
+            int damage = tryAttack(nearestEnemyOrNeutral.getLocation());
+            communication.addScore(damage);
+        }
     }
 }

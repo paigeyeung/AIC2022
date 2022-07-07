@@ -26,22 +26,25 @@ public abstract class AllyUnit {
     abstract void runFirstTurn();
     abstract void run();
 
-    boolean tryMove(Direction moveDirection) {
+    void tryMove(Direction moveDirection) {
         if (uc.canMove(moveDirection)) {
             uc.move(moveDirection);
-            return true;
         }
-        return false;
     }
 
-    boolean tryAttack(Location attackLocation) {
+    int tryAttack(Location attackLocation) {
         Location selfLocation = uc.getLocation();
         if (uc.canAttack(attackLocation)) {
+            int startingHealth = uc.senseUnitAtLocation(attackLocation).getHealth();
             uc.attack(attackLocation);
+            int endingHealth = 0;
+            if(uc.senseUnitAtLocation(attackLocation) != null)
+                endingHealth = uc.senseUnitAtLocation(attackLocation).getHealth();
+            int damage = startingHealth - endingHealth;
             uc.setOrientation(selfLocation.directionTo(attackLocation));
-            return true;
+            return damage;
         }
-        return false;
+        return 0;
     }
 
     UnitInfo getNearestEnemyOrNeutral() {
@@ -62,7 +65,7 @@ public abstract class AllyUnit {
         UnitInfo[] visibleNeutrals = uc.senseUnits(neutral);
         for (UnitInfo visibleNeutral : visibleNeutrals) {
             float distance = selfLocation.distanceSquared(visibleNeutral.getLocation());
-            if(distance > nearestUnitDistance) {
+            if(distance < nearestUnitDistance) {
                 nearestUnit = visibleNeutral;
                 nearestUnitDistance = distance;
             }

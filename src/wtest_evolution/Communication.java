@@ -3,6 +3,14 @@ package wtest_evolution;
 import aic2022.user.*;
 
 public class Communication {
+    final int INDEX_SCORE = 10000;
+    void addScore(int addedScore) {
+        int score = uc.readOnSharedArray(INDEX_SCORE) + addedScore;
+        uc.writeOnSharedArray(INDEX_SCORE, score);
+        uc.println("SCORE:" + score);
+    }
+
+
     UnitController uc;
 
     int visionRangeTilesInOneDirection;
