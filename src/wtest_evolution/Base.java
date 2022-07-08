@@ -26,14 +26,17 @@ public class Base extends AllyUnit {
                 uc.killSelf();
             }
         }
+        else {
+            turnsNoAllyAlive = 0;
+        }
         communication.resetNumAlliesAlive();
 
-        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral();
-        if(nearestEnemyOrNeutral != null) {
-            if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
-            int damage = tryAttack(nearestEnemyOrNeutral.getLocation());
-            if(damage != 0)
-                communication.addScore(damage);
-        }
+//        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral();
+//        if(nearestEnemyOrNeutral != null) {
+//            if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
+//            int damage = tryAttack(nearestEnemyOrNeutral.getLocation());
+//            if(damage != 0)
+//                communication.addScore(damage);
+//        }
     }
 }

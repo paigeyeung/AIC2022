@@ -2,7 +2,7 @@ package wtest_evolution;
 
 import aic2022.user.*;
 public abstract class AllyUnit {
-    boolean loggingOn = false;
+    boolean loggingOn = true;
 
     UnitController uc;
     Communication communication;
@@ -49,27 +49,31 @@ public abstract class AllyUnit {
         return 0;
     }
 
-    UnitInfo getNearestEnemyOrNeutral() {
+    UnitInfo getNearestEnemyOrNeutral(boolean includeEnemies, boolean includeNeutrals) {
         Location selfLocation = uc.getLocation();
 
         UnitInfo nearestUnit = null;
         float nearestUnitDistance = Float.MAX_VALUE;
 
-        UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
-        for (UnitInfo visibleEnemy : visibleEnemies) {
-            float distance = selfLocation.distanceSquared(visibleEnemy.getLocation());
-            if(distance < nearestUnitDistance) {
-                nearestUnit = visibleEnemy;
-                nearestUnitDistance = distance;
+        if(includeEnemies) {
+            UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
+            for (UnitInfo visibleEnemy : visibleEnemies) {
+                float distance = selfLocation.distanceSquared(visibleEnemy.getLocation());
+                if(distance < nearestUnitDistance) {
+                    nearestUnit = visibleEnemy;
+                    nearestUnitDistance = distance;
+                }
             }
         }
 
-        UnitInfo[] visibleNeutrals = uc.senseUnits(neutral);
-        for (UnitInfo visibleNeutral : visibleNeutrals) {
-            float distance = selfLocation.distanceSquared(visibleNeutral.getLocation());
-            if(distance < nearestUnitDistance) {
-                nearestUnit = visibleNeutral;
-                nearestUnitDistance = distance;
+        if(includeNeutrals) {
+            UnitInfo[] visibleNeutrals = uc.senseUnits(neutral);
+            for (UnitInfo visibleNeutral : visibleNeutrals) {
+                float distance = selfLocation.distanceSquared(visibleNeutral.getLocation());
+                if(distance < nearestUnitDistance) {
+                    nearestUnit = visibleNeutral;
+                    nearestUnitDistance = distance;
+                }
             }
         }
 

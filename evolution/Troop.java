@@ -8,11 +8,11 @@ public class Troop extends AllyUnit {
         super(uc);
     }
 
-    // 7 input -> 16 hidden -> 16 hidden -> 9 output
-    final int[] LAYER_SIZES = {7, 16, 16, 9};
+    // x input -> 16 hidden -> 16 hidden -> 9 output
+    final int[] LAYER_SIZES = {25, 16, 16, 9};
     // Weights are outgoing weights
-    /*weights_start*/double[][][] weights;/*weights_end*/
-    /*biases_start*/double[][] biases;/*biases_end*/
+    /*weights_start*//*weights_end*/
+    /*biases_start*//*biases_end*/
 
     void runFirstTurn() {
         communication.downloadAllyBase();
@@ -31,18 +31,12 @@ public class Troop extends AllyUnit {
     }
 
     void run() {
-        communication.downloadMapBoundariesAndEnemyBase();
-        communication.lookForMapBoundaries();
+//        communication.downloadMapBoundariesAndEnemyBase();
+//        communication.lookForMapBoundaries();
 
         communication.addAllyAlive();
 
-        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral();
-        int[] inputData = getInputData(nearestEnemyOrNeutral);
-        if(loggingOn) uc.println("inputData " + Arrays.toString(inputData));
-        double[] outputs = forwardPropagate(inputData);
-        if(loggingOn) uc.println("outputs " + Arrays.toString(outputs));
-        Direction outputDirection = getDirectionFromOutputs(outputs);
-        if(loggingOn) uc.println("outputDirection " + outputDirection);
+        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(false, true);
 
         if(nearestEnemyOrNeutral != null) {
             if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
@@ -50,33 +44,127 @@ public class Troop extends AllyUnit {
             if(damage != 0)
                 communication.addScore(damage);
         }
-        tryMove(outputDirection);
+
+        if(uc.canMove()) {
+            if(loggingOn) uc.println("start (" + uc.getEnergyUsed() + " energy)");
+            double[] inputData = getInputData(nearestEnemyOrNeutral);
+            if(loggingOn) uc.println("inputData " + Arrays.toString(inputData) + " (" + uc.getEnergyUsed() + " energy)");
+            double[] outputs = forwardPropagate(inputData);
+            if(loggingOn) uc.println("outputs " + Arrays.toString(outputs) + " (" + uc.getEnergyUsed() + " energy)");
+            Direction outputDirection = getDirectionFromOutputs(outputs);
+            if(loggingOn) uc.println("outputDirection " + outputDirection + " (" + uc.getEnergyUsed() + " energy)");
+            tryMove(outputDirection);
+        }
     }
 
-    int[] getInputData(UnitInfo nearestEnemyOrNeutral) {
+    double[] getInputData(UnitInfo nearestEnemyOrNeutral) {
         Location selfLocation = uc.getLocation();
-        int relativeAllyBaseX = selfLocation.x - communication.allyBaseLocation.x;
-        int relativeAllyBaseY = selfLocation.y - communication.allyBaseLocation.y;
+
+        int canMoveDirectionNorth = uc.canMove(Direction.NORTH) ? 1 : 0;
+        int canMoveDirectionNorthEast = uc.canMove(Direction.NORTHEAST) ? 1 : 0;
+        int canMoveDirectionEast = uc.canMove(Direction.EAST) ? 1 : 0;
+        int canMoveDirectionSouthEast = uc.canMove(Direction.SOUTHEAST) ? 1 : 0;
+        int canMoveDirectionSouth = uc.canMove(Direction.SOUTH) ? 1 : 0;
+        int canMoveDirectionSouthWest = uc.canMove(Direction.SOUTHWEST) ? 1 : 0;
+        int canMoveDirectionWest = uc.canMove(Direction.WEST) ? 1 : 0;
+        int canMoveDirectionNorthWest = uc.canMove(Direction.NORTHWEST) ? 1 : 0;
+
+        double selfHealth = Math.log(uc.getInfo().getHealth());
+
+//        double allyBaseDistance = Math.log(Math.sqrt(selfLocation.distanceSquared(communication.allyBaseLocation)));
+
         int nearestEnemyOrNeutralExists = 0;
-        int relativeNearestEnemyOrNeutralX = 0;
-        int relativeNearestEnemyOrNeutralY = 0;
-        int relativeNearestEnemyOrNeutralIsExplorer = 0;
-        int relativeNearestEnemyOrNeutralIsMage = 0;
+
+        int nearestEnemyOrNeutralDirectionNorth = 0;
+        int nearestEnemyOrNeutralDirectionNorthEast = 0;
+        int nearestEnemyOrNeutralDirectionEast = 0;
+        int nearestEnemyOrNeutralDirectionSouthEast = 0;
+        int nearestEnemyOrNeutralDirectionSouth = 0;
+        int nearestEnemyOrNeutralDirectionSouthWest = 0;
+        int nearestEnemyOrNeutralDirectionWest = 0;
+        int nearestEnemyOrNeutralDirectionNorthWest = 0;
+
+        double nearestEnemyOrNeutralHealth = 0;
+        double nearestEnemyOrNeutralAttackDamage = 0;
+
+        int nearestEnemyOrNeutralSelfCloseEnoughToAttack = 0;
+        int nearestEnemyOrNeutralCanSeeSelf = 0;
+        int nearestEnemyOrNeutralCloseEnoughToAttackSelf = 0;
+
+        int nearestEnemyOrNeutralCanMoveNextTurn = 0;
+        int nearestEnemyOrNeutralCanAttackNextTurn = 0;
+
         if(nearestEnemyOrNeutral != null) {
             Location nearestEnemyOrNeutralLocation = nearestEnemyOrNeutral.getLocation();
+            int distanceToNearestEnemyOrNeutral = selfLocation.distanceSquared(nearestEnemyOrNeutralLocation);
             UnitType nearestEnemyOrNeutralType = nearestEnemyOrNeutral.getType();
+
             nearestEnemyOrNeutralExists = 1;
-            relativeNearestEnemyOrNeutralX = selfLocation.x - nearestEnemyOrNeutralLocation.x;
-            relativeNearestEnemyOrNeutralY = selfLocation.y - nearestEnemyOrNeutralLocation.y;
-            if(nearestEnemyOrNeutralType == UnitType.EXPLORER)
-                relativeNearestEnemyOrNeutralIsExplorer = 1;
-            else if(nearestEnemyOrNeutralType == UnitType.MAGE)
-                relativeNearestEnemyOrNeutralIsMage = 1;
+
+            int nearestEnemyOrNeutralRelativeLocationX = nearestEnemyOrNeutralLocation.x - selfLocation.x;
+            int nearestEnemyOrNeutralRelativeLocationY = nearestEnemyOrNeutralLocation.y - selfLocation.y;
+            if(nearestEnemyOrNeutralRelativeLocationX == 0) {
+                if(nearestEnemyOrNeutralRelativeLocationY > 0)
+                    nearestEnemyOrNeutralDirectionNorth = 1;
+                else
+                    nearestEnemyOrNeutralDirectionSouth = 1;
+            }
+            else if(nearestEnemyOrNeutralRelativeLocationY == 0) {
+                if(nearestEnemyOrNeutralRelativeLocationX > 0)
+                    nearestEnemyOrNeutralDirectionEast = 1;
+                else
+                    nearestEnemyOrNeutralDirectionWest = 1;
+            }
+            else {
+                if(nearestEnemyOrNeutralRelativeLocationX > 0 && nearestEnemyOrNeutralRelativeLocationY > 0)
+                    nearestEnemyOrNeutralDirectionNorthEast = 1;
+                else if(nearestEnemyOrNeutralRelativeLocationX > 0)
+                    nearestEnemyOrNeutralDirectionSouthEast = 1;
+                else if(nearestEnemyOrNeutralRelativeLocationY < 0)
+                    nearestEnemyOrNeutralDirectionSouthWest = 1;
+                else
+                    nearestEnemyOrNeutralDirectionNorthWest = 1;
+            }
+
+            nearestEnemyOrNeutralHealth = Math.log(nearestEnemyOrNeutral.getHealth());
+            nearestEnemyOrNeutralAttackDamage = Math.log(nearestEnemyOrNeutralType.getStat(UnitStat.ATTACK));
+
+            if(distanceToNearestEnemyOrNeutral <= selfAttackRange && distanceToNearestEnemyOrNeutral >= selfMinAttackRange)
+                nearestEnemyOrNeutralSelfCloseEnoughToAttack = 1;
+
+            float nearestEnemyOrNeutralVisionRange = nearestEnemyOrNeutralType.getStat(UnitStat.VISION_RANGE);
+            if(distanceToNearestEnemyOrNeutral <= nearestEnemyOrNeutralVisionRange)
+                nearestEnemyOrNeutralCanSeeSelf = 1;
+
+            float nearestEnemyOrNeutralAttackRange = nearestEnemyOrNeutralType.getStat(UnitStat.ATTACK_RANGE);
+            float nearestEnemyOrNeutralMinAttackRange = nearestEnemyOrNeutralType.getStat(UnitStat.MIN_ATTACK_RANGE);
+            if(distanceToNearestEnemyOrNeutral <= nearestEnemyOrNeutralAttackRange && distanceToNearestEnemyOrNeutral >= nearestEnemyOrNeutralMinAttackRange)
+                nearestEnemyOrNeutralCloseEnoughToAttackSelf = 1;
+
+            float nearestEnemyOrNeutralMoveCooldown = nearestEnemyOrNeutral.getCurrentMovementCooldown();
+            if(nearestEnemyOrNeutralMoveCooldown <= 1)
+                nearestEnemyOrNeutralCanMoveNextTurn = 1;
+
+            float nearestEnemyOrNeutralAttackCooldown = nearestEnemyOrNeutral.getCurrentAttackCooldown();
+            if(nearestEnemyOrNeutralAttackCooldown <= 1)
+                nearestEnemyOrNeutralCanAttackNextTurn = 1;
         }
-        int[] inputData = {relativeAllyBaseX, relativeAllyBaseY, nearestEnemyOrNeutralExists,
-                relativeNearestEnemyOrNeutralX, relativeNearestEnemyOrNeutralY,
-                relativeNearestEnemyOrNeutralIsExplorer, relativeNearestEnemyOrNeutralIsMage};
-        return inputData;
+
+        return new double[]{
+                canMoveDirectionNorth, canMoveDirectionNorthEast,
+                canMoveDirectionEast, canMoveDirectionSouthEast,
+                canMoveDirectionSouth, canMoveDirectionSouthWest,
+                canMoveDirectionWest, canMoveDirectionNorthWest,
+                selfHealth, nearestEnemyOrNeutralExists,
+                nearestEnemyOrNeutralDirectionNorth, nearestEnemyOrNeutralDirectionNorthEast,
+                nearestEnemyOrNeutralDirectionEast, nearestEnemyOrNeutralDirectionSouthEast,
+                nearestEnemyOrNeutralDirectionSouth, nearestEnemyOrNeutralDirectionSouthWest,
+                nearestEnemyOrNeutralDirectionWest, nearestEnemyOrNeutralDirectionNorthWest,
+                nearestEnemyOrNeutralHealth, nearestEnemyOrNeutralAttackDamage,
+                nearestEnemyOrNeutralSelfCloseEnoughToAttack, nearestEnemyOrNeutralCanSeeSelf,
+                nearestEnemyOrNeutralCloseEnoughToAttackSelf,
+                nearestEnemyOrNeutralCanMoveNextTurn, nearestEnemyOrNeutralCanAttackNextTurn
+        };
     }
 
     double relu(double x) {
@@ -89,7 +177,7 @@ public class Troop extends AllyUnit {
         return 1 / (1 + Math.exp(-x));
     }
 
-    double[] forwardPropagate(int[] inputData) {
+    double[] forwardPropagate(double[] inputData) {
         double[][] activations = new double[LAYER_SIZES.length][];
         for(int layer = 1; layer < LAYER_SIZES.length; layer++) {
             activations[layer] = new double[LAYER_SIZES[layer]];
@@ -108,30 +196,43 @@ public class Troop extends AllyUnit {
 
                 activations[layer][neuron] += biases[layer][neuron];
 
-                if(layer == LAYER_SIZES.length - 1)
-                    activations[layer][neuron] = sigmoid(activations[layer][neuron]);
-                else
+                if(layer != LAYER_SIZES.length - 1)
                     activations[layer][neuron] = relu(activations[layer][neuron]);
+                else
+                    activations[layer][neuron] = sigmoid(activations[layer][neuron]);
             }
         }
 
         int outputLayer = LAYER_SIZES.length - 1;
         double[] outputs = new double[LAYER_SIZES[outputLayer]];
-        for(int neuron = 0; neuron < activations[outputLayer].length; neuron++) {
-            outputs[neuron] = activations[outputLayer][neuron];
-        }
+        System.arraycopy(activations[outputLayer], 0, outputs, 0, activations[outputLayer].length);
         return outputs;
     }
 
     Direction getDirectionFromOutputs(double[] outputs) {
-        double highestOutput = 0;
-        int highestOutputIndex = 0;
+//        double highestOutput = 0;
+//        int highestOutputIndex = 0;
+//        for(int i = 0; i < outputs.length; i++) {
+//            if(outputs[i] > highestOutput) {
+//                highestOutput = outputs[i];
+//                highestOutputIndex = i;
+//            }
+//        }
+//        return directions[highestOutputIndex];
+        double totalOutputs = 0;
+        for (double output : outputs) {
+            totalOutputs += output;
+        }
+        double selectRandomPercent = Math.random();
+        int selectIndex = 0;
+        double currentPercent = 0;
         for(int i = 0; i < outputs.length; i++) {
-            if(outputs[i] > highestOutput) {
-                highestOutput = outputs[i];
-                highestOutputIndex = i;
+            currentPercent += outputs[i] / totalOutputs;
+            if(currentPercent >= selectRandomPercent) {
+                selectIndex = i;
+                break;
             }
         }
-        return directions[highestOutputIndex];
+        return directions[selectIndex];
     }
 }
