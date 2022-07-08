@@ -12,15 +12,16 @@ WEIGHTS_START = "/*weights_start*/"
 WEIGHTS_END = "/*weights_end*/"
 BIASES_START = "/*biases_start*/"
 BIASES_END = "/*biases_end*/"
-LAYER_SIZES = [25, 16, 16, 9]
+LAYER_SIZES = [25, 14, 14, 9]
 MODEL_FOLDER_NAME = "models/explorer_horizontalneutrals"
 GAMES_FOLDER_NAME = "../games"
 PACKAGE_1 = "wtest_evolution"
 PACKAGE_2 = "nullplayer"
 BUILD_FILENAME = "../build.defaults"
+NUM_DECIMALS = 6
 NUM_CREATURES_PER_GENERATION = 100
-NUM_SURVIVORS_PER_GENERATION = 10
-NUM_MUTATIONS_PER_SURVIVOR = 10
+NUM_SURVIVORS_PER_GENERATION = 20
+NUM_MUTATIONS_PER_SURVIVOR = 5
 MUTATION_STANDARD_DEVIATION = 0.1
 
 def copy_file(weights_string, biases_string):
@@ -35,7 +36,11 @@ def copy_file(weights_string, biases_string):
                     fout.write(line)
 
 def array_to_string(array):
-    return str(array).replace("[", "{").replace("]", "}")
+    string = str(array).replace("[", "{").replace("]", "}")
+    for digit in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+        string = string.replace(digit + ",", digit + "f,")
+        string = string.replace(digit + "}", digit + "f}")
+    return string
 
 def get_next_generation():
     files = [f for f in os.listdir(MODEL_FOLDER_NAME) if os.path.isfile(os.path.join(MODEL_FOLDER_NAME, f))]
@@ -55,7 +60,7 @@ def generate_random_weights():
             next_layer = []
             if layer_index != len(LAYER_SIZES) - 1:
                 for next_neuron_index in range(LAYER_SIZES[layer_index + 1]):
-                    weight = random.uniform(-2, 2)
+                    weight = round(random.uniform(-2, 2), NUM_DECIMALS)
                     next_layer.append(weight)
             layer.append(next_layer)
         weights.append(layer)
@@ -68,7 +73,7 @@ def generate_random_biases():
         for neuron_index in range(LAYER_SIZES[layer_index]):
             bias = 0
             if layer_index != 0:
-                bias = random.uniform(-2, 2)
+                bias = round(random.uniform(-2, 2), NUM_DECIMALS)
             layer.append(bias)
         biases.append(layer)
     return biases
@@ -120,7 +125,7 @@ def simulate_creatures(generation, creatures):
     for creature_index in range(len(creatures)):
         start_time = time.time()
         randomize_seed()
-        copy_file("double[][][] weights = " + array_to_string(creatures[creature_index]["weights"]) + ";", "double[][] biases = " + array_to_string(creatures[creature_index]["biases"]) + ";")
+        copy_file("final float[][][] weights = " + array_to_string(creatures[creature_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_index]["biases"]) + ";")
         stream = os.popen("cd ..; rm -rf games; ant run")
         stream.read()
         score = get_game_score(generation, highest_score)
@@ -137,11 +142,11 @@ def mutate_creature(creature):
         for neuron_index in range(LAYER_SIZES[layer_index]):
             if layer_index != len(LAYER_SIZES) - 1:
                 for next_neuron_index in range(LAYER_SIZES[layer_index + 1]):
-                    creature["weights"][layer_index][neuron_index][next_neuron_index] = np.random.normal(loc=creature["weights"][layer_index][neuron_index][next_neuron_index], scale=MUTATION_STANDARD_DEVIATION)
+                    creature["weights"][layer_index][neuron_index][next_neuron_index] = round(np.random.normal(loc=creature["weights"][layer_index][neuron_index][next_neuron_index], scale=MUTATION_STANDARD_DEVIATION), NUM_DECIMALS)
     for layer_index in range(len(LAYER_SIZES)):
         for neuron_index in range(LAYER_SIZES[layer_index]):
             if layer_index != 0:
-                creature["biases"][layer_index][neuron_index] = np.random.normal(loc=creature["biases"][layer_index][neuron_index], scale=MUTATION_STANDARD_DEVIATION)
+                creature["biases"][layer_index][neuron_index] = round(np.random.normal(loc=creature["biases"][layer_index][neuron_index], scale=MUTATION_STANDARD_DEVIATION), NUM_DECIMALS)
     return creature
 
 def mutate_creatures(creatures):

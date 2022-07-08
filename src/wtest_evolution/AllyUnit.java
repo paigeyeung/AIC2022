@@ -28,10 +28,12 @@ public abstract class AllyUnit {
     abstract void runFirstTurn();
     abstract void run();
 
-    void tryMove(Direction moveDirection) {
+    boolean tryMove(Direction moveDirection) {
         if (uc.canMove(moveDirection)) {
             uc.move(moveDirection);
+            return true;
         }
+        return false;
     }
 
     int tryAttack(Location attackLocation) {

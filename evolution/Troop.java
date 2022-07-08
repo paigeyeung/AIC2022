@@ -4,17 +4,21 @@ import aic2022.user.*;
 import java.util.Arrays;
 
 public class Troop extends AllyUnit {
+    int lastTurnHealth;
+
     Troop(UnitController uc) {
         super(uc);
     }
 
-    // x input -> 16 hidden -> 16 hidden -> 9 output
-    final int[] LAYER_SIZES = {25, 16, 16, 9};
+    // x input -> 14 hidden -> 14 hidden -> 9 output
+    final int[] LAYER_SIZES = {25, 14, 14, 9};
     // Weights are outgoing weights
     /*weights_start*//*weights_end*/
     /*biases_start*//*biases_end*/
 
     void runFirstTurn() {
+        lastTurnHealth = uc.getInfo().getHealth();
+
         communication.downloadAllyBase();
         communication.downloadMapBoundariesAndEnemyBase();
 
@@ -36,28 +40,36 @@ public class Troop extends AllyUnit {
 
         communication.addAllyAlive();
 
+        int health = uc.getInfo().getHealth();
+        int tookDamage = lastTurnHealth - health;
+        if(tookDamage != 0) {
+            communication.addScore(-tookDamage);
+            lastTurnHealth = health;
+        }
+
         UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(false, true);
 
         if(nearestEnemyOrNeutral != null) {
             if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
             int damage = tryAttack(nearestEnemyOrNeutral.getLocation());
             if(damage != 0)
-                communication.addScore(damage);
+                communication.addScore(damage * 100);
         }
 
         if(uc.canMove()) {
             if(loggingOn) uc.println("start (" + uc.getEnergyUsed() + " energy)");
-            double[] inputData = getInputData(nearestEnemyOrNeutral);
+            float[] inputData = getInputData(nearestEnemyOrNeutral);
             if(loggingOn) uc.println("inputData " + Arrays.toString(inputData) + " (" + uc.getEnergyUsed() + " energy)");
-            double[] outputs = forwardPropagate(inputData);
+            float[] outputs = forwardPropagate(inputData);
             if(loggingOn) uc.println("outputs " + Arrays.toString(outputs) + " (" + uc.getEnergyUsed() + " energy)");
             Direction outputDirection = getDirectionFromOutputs(outputs);
             if(loggingOn) uc.println("outputDirection " + outputDirection + " (" + uc.getEnergyUsed() + " energy)");
-            tryMove(outputDirection);
+            if(!tryMove(outputDirection))
+                communication.addScore(-10);
         }
     }
 
-    double[] getInputData(UnitInfo nearestEnemyOrNeutral) {
+    float[] getInputData(UnitInfo nearestEnemyOrNeutral) {
         Location selfLocation = uc.getLocation();
 
         int canMoveDirectionNorth = uc.canMove(Direction.NORTH) ? 1 : 0;
@@ -69,9 +81,9 @@ public class Troop extends AllyUnit {
         int canMoveDirectionWest = uc.canMove(Direction.WEST) ? 1 : 0;
         int canMoveDirectionNorthWest = uc.canMove(Direction.NORTHWEST) ? 1 : 0;
 
-        double selfHealth = Math.log(uc.getInfo().getHealth());
+        float selfHealth = (float)Math.log(uc.getInfo().getHealth());
 
-//        double allyBaseDistance = Math.log(Math.sqrt(selfLocation.distanceSquared(communication.allyBaseLocation)));
+//        float allyBaseDistance = Math.log(Math.sqrt(selfLocation.distanceSquared(communication.allyBaseLocation)));
 
         int nearestEnemyOrNeutralExists = 0;
 
@@ -84,8 +96,8 @@ public class Troop extends AllyUnit {
         int nearestEnemyOrNeutralDirectionWest = 0;
         int nearestEnemyOrNeutralDirectionNorthWest = 0;
 
-        double nearestEnemyOrNeutralHealth = 0;
-        double nearestEnemyOrNeutralAttackDamage = 0;
+        float nearestEnemyOrNeutralHealth = 0;
+        float nearestEnemyOrNeutralAttackDamage = 0;
 
         int nearestEnemyOrNeutralSelfCloseEnoughToAttack = 0;
         int nearestEnemyOrNeutralCanSeeSelf = 0;
@@ -126,8 +138,8 @@ public class Troop extends AllyUnit {
                     nearestEnemyOrNeutralDirectionNorthWest = 1;
             }
 
-            nearestEnemyOrNeutralHealth = Math.log(nearestEnemyOrNeutral.getHealth());
-            nearestEnemyOrNeutralAttackDamage = Math.log(nearestEnemyOrNeutralType.getStat(UnitStat.ATTACK));
+            nearestEnemyOrNeutralHealth = (float)Math.log(nearestEnemyOrNeutral.getHealth());
+            nearestEnemyOrNeutralAttackDamage = (float)Math.log(nearestEnemyOrNeutralType.getStat(UnitStat.ATTACK));
 
             if(distanceToNearestEnemyOrNeutral <= selfAttackRange && distanceToNearestEnemyOrNeutral >= selfMinAttackRange)
                 nearestEnemyOrNeutralSelfCloseEnoughToAttack = 1;
@@ -150,7 +162,7 @@ public class Troop extends AllyUnit {
                 nearestEnemyOrNeutralCanAttackNextTurn = 1;
         }
 
-        return new double[]{
+        return new float[]{
                 canMoveDirectionNorth, canMoveDirectionNorthEast,
                 canMoveDirectionEast, canMoveDirectionSouthEast,
                 canMoveDirectionSouth, canMoveDirectionSouthWest,
@@ -167,20 +179,20 @@ public class Troop extends AllyUnit {
         };
     }
 
-    double relu(double x) {
+    float relu(float x) {
         if(x > 0)
             return x;
         return 0;
     }
 
-    double sigmoid(double x) {
-        return 1 / (1 + Math.exp(-x));
+    float sigmoid(float x) {
+        return 1 / (1 + (float)Math.exp(-x));
     }
 
-    double[] forwardPropagate(double[] inputData) {
-        double[][] activations = new double[LAYER_SIZES.length][];
+    float[] forwardPropagate(float[] inputData) {
+        float[][] activations = new float[LAYER_SIZES.length][];
         for(int layer = 1; layer < LAYER_SIZES.length; layer++) {
-            activations[layer] = new double[LAYER_SIZES[layer]];
+            activations[layer] = new float[LAYER_SIZES[layer]];
             for(int neuron = 0; neuron < activations[layer].length; neuron++) {
                 activations[layer][neuron] = 0;
                 if(layer == 1) {
@@ -204,13 +216,13 @@ public class Troop extends AllyUnit {
         }
 
         int outputLayer = LAYER_SIZES.length - 1;
-        double[] outputs = new double[LAYER_SIZES[outputLayer]];
+        float[] outputs = new float[LAYER_SIZES[outputLayer]];
         System.arraycopy(activations[outputLayer], 0, outputs, 0, activations[outputLayer].length);
         return outputs;
     }
 
-    Direction getDirectionFromOutputs(double[] outputs) {
-//        double highestOutput = 0;
+    Direction getDirectionFromOutputs(float[] outputs) {
+//        float highestOutput = 0;
 //        int highestOutputIndex = 0;
 //        for(int i = 0; i < outputs.length; i++) {
 //            if(outputs[i] > highestOutput) {
@@ -219,13 +231,13 @@ public class Troop extends AllyUnit {
 //            }
 //        }
 //        return directions[highestOutputIndex];
-        double totalOutputs = 0;
-        for (double output : outputs) {
+        float totalOutputs = 0;
+        for (float output : outputs) {
             totalOutputs += output;
         }
-        double selectRandomPercent = Math.random();
+        float selectRandomPercent = (float)Math.random();
         int selectIndex = 0;
-        double currentPercent = 0;
+        float currentPercent = 0;
         for(int i = 0; i < outputs.length; i++) {
             currentPercent += outputs[i] / totalOutputs;
             if(currentPercent >= selectRandomPercent) {
