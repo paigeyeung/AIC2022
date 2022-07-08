@@ -2,6 +2,8 @@ package wtest_evolution;
 
 import aic2022.user.*;
 public abstract class AllyUnit {
+    boolean loggingOn = false;
+
     UnitController uc;
     Communication communication;
 
@@ -12,7 +14,7 @@ public abstract class AllyUnit {
 
     AllyUnit(UnitController uc){
         this.uc = uc;
-        communication = new Communication(uc);
+        communication = new Communication(uc, loggingOn);
         directions = Direction.values();
         ally = uc.getTeam();
         neutral = Team.NEUTRAL;
@@ -20,7 +22,7 @@ public abstract class AllyUnit {
         selfType = uc.getType();
         selfAttackRange = (int)selfType.getStat(UnitStat.ATTACK_RANGE);
         selfMinAttackRange = (int)selfType.getStat(UnitStat.MIN_ATTACK_RANGE);
-        uc.println("selfAttackRange: " + selfAttackRange + ", selfMinAttackRange: " + selfMinAttackRange);
+        if(loggingOn) uc.println("selfAttackRange: " + selfAttackRange + ", selfMinAttackRange: " + selfMinAttackRange);
     }
 
     abstract void runFirstTurn();

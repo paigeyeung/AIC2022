@@ -3,7 +3,6 @@ package wtest_evolution;
 import aic2022.user.*;
 
 public class UnitPlayer {
-
     UnitController uc;
     public void run(UnitController uc) {
         this.uc = uc;

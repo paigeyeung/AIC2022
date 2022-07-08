@@ -7,18 +7,32 @@ public class Communication {
     void addScore(int addedScore) {
         int score = uc.readOnSharedArray(INDEX_SCORE) + addedScore;
         uc.writeOnSharedArray(INDEX_SCORE, score);
-        uc.println("SCORE:" + score);
+        uc.println("[SCORE]" + score + "[SCORE]");
+    }
+
+    final int INDEX_NUM_ALLIES_ALIVE = 10001;
+    int getNumAlliesAlive() {
+        return uc.readOnSharedArray(INDEX_NUM_ALLIES_ALIVE);
+    }
+    void resetNumAlliesAlive() {
+        uc.writeOnSharedArray(INDEX_NUM_ALLIES_ALIVE, 0);
+    }
+    void addAllyAlive() {
+        int numAlliesAlive = getNumAlliesAlive() + 1;
+        uc.writeOnSharedArray(INDEX_NUM_ALLIES_ALIVE, numAlliesAlive);
     }
 
 
     UnitController uc;
+    boolean loggingOn;
 
     int visionRangeTilesInOneDirection;
-    Communication(UnitController uc) {
+    Communication(UnitController uc, boolean loggingOn) {
         this.uc = uc;
+        this.loggingOn = loggingOn;
 
         visionRangeTilesInOneDirection = (int)Math.sqrt(uc.getType().getStat(UnitStat.VISION_RANGE));
-        uc.println("Communication visionRangeTilesInOneDirection " + visionRangeTilesInOneDirection);
+        if(loggingOn) uc.println("Communication visionRangeTilesInOneDirection " + visionRangeTilesInOneDirection);
     }
 
     /*
@@ -54,18 +68,18 @@ public class Communication {
     void uploadAllyBase(Location allyBaseLocation) {
         this.allyBaseLocation = allyBaseLocation;
         uc.writeOnSharedArray(INDEX_ALLY_BASE_LOCATION, encodeLocation(allyBaseLocation));
-        uc.println("Communication uploadAllyBase " + allyBaseLocation);
+        if(loggingOn) uc.println("Communication uploadAllyBase " + allyBaseLocation);
     }
 
     void uploadEnemyBase(Location enemyBaseLocation) {
         this.enemyBaseLocation = enemyBaseLocation;
         uc.writeOnSharedArray(INDEX_ENEMY_BASE_LOCATION, encodeLocation(enemyBaseLocation));
-        uc.println("Communication uploadEnemyBase " + enemyBaseLocation);
+        if(loggingOn) uc.println("Communication uploadEnemyBase " + enemyBaseLocation);
     }
 
     void downloadAllyBase() {
         allyBaseLocation = decodeLocation(uc.readOnSharedArray(INDEX_ALLY_BASE_LOCATION));
-        uc.println("Communication downloadAllyBase " + allyBaseLocation);
+        if(loggingOn) uc.println("Communication downloadAllyBase " + allyBaseLocation);
     }
 
     final int UNINITIALIZED_BOUNDARY = 0xfff;
@@ -112,13 +126,13 @@ public class Communication {
             else if(direction.isEqual(Direction.EAST))
                 newLocation = new Location(boundary, selfLocation.y);
             else {
-                uc.println("ERROR: Communication foundMapBoundaryRoughly direction not found");
+                if(loggingOn) uc.println("ERROR: Communication foundMapBoundaryRoughly direction not found");
                 return;
             }
 
             if(!uc.isOutOfMap(newLocation)) {
                 uploadMapBoundary(direction, boundary);
-                uc.println("Communication uploaded new map boundary for " + direction + ": " + boundary);
+                if(loggingOn) uc.println("Communication uploaded new map boundary for " + direction + ": " + boundary);
                 return;
             }
         }
@@ -142,11 +156,11 @@ public class Communication {
             mapEastBoundary = boundary;
         }
         else {
-            uc.println("ERROR: Communication uploadMapBoundary direction not found");
+            if(loggingOn) uc.println("ERROR: Communication uploadMapBoundary direction not found");
             return;
         }
         uc.writeOnSharedArray(index, boundary);
-        uc.println("Communication uploadMapBoundary index: " + index + ", direction: " + direction + ", boundary: " + boundary);
+        if(loggingOn) uc.println("Communication uploadMapBoundary index: " + index + ", direction: " + direction + ", boundary: " + boundary);
     }
     void updateEnemyBaseDirection() {
         if(allyBaseLocation == null)
@@ -201,6 +215,6 @@ public class Communication {
             enemyBaseLocation = decodeLocation(uc.readOnSharedArray(INDEX_ENEMY_BASE_LOCATION));
         }
 
-        uc.println("Communication downloadMapBoundariesAndEnemyBase mapNorthBoundary: " + mapNorthBoundary + ", mapSouthBoundary: " + mapSouthBoundary + ", mapWestBoundary: " + mapWestBoundary + ", mapEastBoundary: " + mapEastBoundary + ", enemyBaseCorner: " + enemyBaseCorner + (enemyBaseCorner == -2 ? ", enemyBaseLocation: " + enemyBaseLocation : ""));
+        if(loggingOn) uc.println("Communication downloadMapBoundariesAndEnemyBase mapNorthBoundary: " + mapNorthBoundary + ", mapSouthBoundary: " + mapSouthBoundary + ", mapWestBoundary: " + mapWestBoundary + ", mapEastBoundary: " + mapEastBoundary + ", enemyBaseCorner: " + enemyBaseCorner + (enemyBaseCorner == -2 ? ", enemyBaseLocation: " + enemyBaseLocation : ""));
     }
 }

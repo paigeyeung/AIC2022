@@ -19,14 +19,14 @@ public class Troop extends AllyUnit {
         communication.downloadMapBoundariesAndEnemyBase();
 
         if(weights.length != LAYER_SIZES.length)
-            uc.println("ERROR 1");
+            if(loggingOn) uc.println("ERROR 1");
         if(biases.length != LAYER_SIZES.length)
-            uc.println("ERROR 2");
+            if(loggingOn) uc.println("ERROR 2");
         for(int layer = 0; layer < LAYER_SIZES.length; layer++) {
             if(weights[layer].length != LAYER_SIZES[layer])
-                uc.println("ERROR 3");
+                if(loggingOn) uc.println("ERROR 3");
             if(biases[layer].length != LAYER_SIZES[layer])
-                uc.println("ERROR 4");
+                if(loggingOn) uc.println("ERROR 4");
         }
     }
 
@@ -34,18 +34,21 @@ public class Troop extends AllyUnit {
         communication.downloadMapBoundariesAndEnemyBase();
         communication.lookForMapBoundaries();
 
+        communication.addAllyAlive();
+
         UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral();
         int[] inputData = getInputData(nearestEnemyOrNeutral);
-        uc.println("inputData " + Arrays.toString(inputData));
+        if(loggingOn) uc.println("inputData " + Arrays.toString(inputData));
         double[] outputs = forwardPropagate(inputData);
-        uc.println("outputs " + Arrays.toString(outputs));
+        if(loggingOn) uc.println("outputs " + Arrays.toString(outputs));
         Direction outputDirection = getDirectionFromOutputs(outputs);
-        uc.println("outputDirection " + outputDirection);
+        if(loggingOn) uc.println("outputDirection " + outputDirection);
 
         if(nearestEnemyOrNeutral != null) {
-            uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
+            if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
             int damage = tryAttack(nearestEnemyOrNeutral.getLocation());
-            communication.addScore(damage);
+            if(damage != 0)
+                communication.addScore(damage);
         }
         tryMove(outputDirection);
     }
