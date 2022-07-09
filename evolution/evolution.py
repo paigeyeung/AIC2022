@@ -17,12 +17,14 @@ MODEL_FOLDER_NAME = "models/explorer_horizontalneutrals"
 GAMES_FOLDER_NAME = "../games"
 PACKAGE_1 = "wtest_evolution"
 PACKAGE_2 = "nullplayer"
+MAPS = ["HorizontalNeutrals1", "HorizontalNeutrals2", "HorizontalNeutrals3"]
 BUILD_FILENAME = "../build.defaults"
 NUM_DECIMALS = 6
+NUM_GAMES_PER_MATCHUP = 3
 NUM_CREATURES_PER_GENERATION = 100
 NUM_SURVIVORS_PER_GENERATION = 20
 NUM_MUTATIONS_PER_SURVIVOR = 5
-MUTATION_STANDARD_DEVIATION = 0.1
+MUTATION_STANDARD_DEVIATION = 0.02
 
 def copy_file(weights_string, biases_string):
     with open(SOURCE_FILENAME, "r") as fin:
@@ -100,8 +102,13 @@ def write_generation(generation, creatures):
 def randomize_seed():
     with open(BUILD_FILENAME, "r") as fin:
         lines = fin.readlines()
-    lines[0] = "package1=" + PACKAGE_1 + "\n"
-    lines[1] = "package2=" + PACKAGE_2 + "\n"
+    if bool(random.getrandbits(1)):
+        lines[0] = "package1=" + PACKAGE_1 + "\n"
+        lines[1] = "package2=" + PACKAGE_2 + "\n"
+    else:
+        lines[0] = "package1=" + PACKAGE_2 + "\n"
+        lines[1] = "package2=" + PACKAGE_1 + "\n"
+    lines[2] = "map=" + random.choice(MAPS) + "\n"
     lines[3] = "seed=" + str(random.randint(0, 1000000)) + "\n"
     with open(BUILD_FILENAME, "w") as fout:
         fout.writelines(lines)
@@ -121,20 +128,26 @@ def get_game_score(generation, save_if_score_greater):
     return 0
 
 def simulate_creatures(generation, creatures):
-    highest_score = 0
+    highest_score = -10000000000
     for creature_index in range(len(creatures)):
         start_time = time.time()
-        randomize_seed()
         copy_file("final float[][][] weights = " + array_to_string(creatures[creature_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_index]["biases"]) + ";")
-        stream = os.popen("cd ..; rm -rf games; ant run")
-        stream.read()
-        score = get_game_score(generation, highest_score)
-        if score > highest_score:
-            highest_score = score
-        creatures[creature_index]["score"] = score
+        total_score = 0
+        scores = []
+        for game_index in range(NUM_GAMES_PER_MATCHUP):
+            randomize_seed()
+            stream = os.popen("cd ..; rm -rf games; ant run")
+            stream.read()
+            score = get_game_score(generation, highest_score)
+            total_score += score
+            scores.append(score)
+            if score > highest_score:
+                highest_score = score
+        average_score = round(total_score / NUM_GAMES_PER_MATCHUP)
+        creatures[creature_index]["score"] = average_score
         end_time = time.time()
         time_elapsed = end_time - start_time
-        print("creature " + str(creatures[creature_index]["index"]) + " score " + str(creatures[creature_index]["score"]) + " (" + str(round(time_elapsed, 2)) + "s)")
+        print("creature " + str(creatures[creature_index]["index"]) + " scores " + str(scores) + " average " + str(average_score) + " (" + str(round(time_elapsed, 2)) + "s)")
     return creatures
 
 def mutate_creature(creature):

@@ -27,7 +27,7 @@ public class Base extends AllyUnit {
         int health = uc.getInfo().getHealth();
         int tookDamage = lastTurnHealth - health;
         if(tookDamage != 0) {
-            communication.addScore(-tookDamage * 10);
+            communication.addScore(-tookDamage * 50);
             lastTurnHealth = health;
         }
 
@@ -43,7 +43,7 @@ public class Base extends AllyUnit {
         }
         communication.resetNumAlliesAlive();
 
-//        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral();
+//        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, false);
 //        if(nearestEnemyOrNeutral != null) {
 //            if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
 //            int damage = tryAttack(nearestEnemyOrNeutral.getLocation());

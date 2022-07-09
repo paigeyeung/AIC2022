@@ -43,10 +43,11 @@ public class Troop extends AllyUnit {
         int health = uc.getInfo().getHealth();
         int tookDamage = lastTurnHealth - health;
         if(tookDamage != 0) {
-            communication.addScore(-tookDamage);
+            communication.addScore(-tookDamage * 10);
             lastTurnHealth = health;
         }
 
+//        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, false);
         UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(false, true);
 
         if(nearestEnemyOrNeutral != null) {
