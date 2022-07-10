@@ -6,8 +6,8 @@ import numpy as np
 import copy
 import shutil
 
-SOURCE_FILENAME = "Troop.java"
-COPY_FILENAME = "../src/wtest_evolution/Troop.java"
+SOURCE_FILENAME = "Troop_pve.java"
+COPY_FILENAME = "../src/wtest_evolution_pve/Troop.java"
 WEIGHTS_START = "/*weights_start*/"
 WEIGHTS_END = "/*weights_end*/"
 BIASES_START = "/*biases_start*/"
@@ -15,7 +15,7 @@ BIASES_END = "/*biases_end*/"
 LAYER_SIZES = [25, 14, 14, 9]
 MODEL_FOLDER_NAME = "models/explorer_horizontalneutrals"
 GAMES_FOLDER_NAME = "../games"
-PACKAGE_1 = "wtest_evolution"
+PACKAGE_1 = "wtest_evolution_pve"
 PACKAGE_2 = "nullplayer"
 MAPS = ["HorizontalNeutrals1", "HorizontalNeutrals2", "HorizontalNeutrals3"]
 BUILD_FILENAME = "../build.defaults"
