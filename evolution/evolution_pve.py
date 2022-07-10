@@ -20,10 +20,10 @@ PACKAGE_2 = "nullplayer"
 MAPS = ["HorizontalNeutrals1", "HorizontalNeutrals2", "HorizontalNeutrals3"]
 BUILD_FILENAME = "../build.defaults"
 NUM_DECIMALS = 6
-NUM_GAMES_PER_MATCHUP = 3
 NUM_CREATURES_PER_GENERATION = 100
 NUM_SURVIVORS_PER_GENERATION = 20
 NUM_MUTATIONS_PER_SURVIVOR = 5
+NUM_GAMES_PER_MATCHUP = 5
 MUTATION_STANDARD_DEVIATION = 0.02
 
 def copy_file(weights_string, biases_string):

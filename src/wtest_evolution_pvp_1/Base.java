@@ -14,8 +14,7 @@ public class Base extends AllyUnit {
     }
 
     void run() {
-        if(uc.canSpawn(UnitType.BARBARIAN, Direction.SOUTH))
-            uc.spawn(UnitType.EXPLORER, Direction.SOUTH);
+        trySpawn(UnitType.BARBARIAN);
 
         UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, false);
         if(nearestEnemyOrNeutral != null) {
@@ -24,5 +23,15 @@ public class Base extends AllyUnit {
             if(damage != 0)
                 communication.addScore(damage);
         }
+    }
+
+    boolean trySpawn(UnitType unitType) {
+        for(Direction direction : directions) {
+            if(uc.canSpawn(unitType, direction)) {
+                uc.spawn(unitType, direction);
+                return true;
+            }
+        }
+        return false;
     }
 }

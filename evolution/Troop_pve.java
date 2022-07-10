@@ -10,7 +10,7 @@ public class Troop extends AllyUnit {
         super(uc);
     }
 
-    // x input -> 14 hidden -> 14 hidden -> 9 output
+    // x input -> x hidden -> x hidden -> 9 output
     final int[] LAYER_SIZES = {25, 14, 14, 9};
     // Weights are outgoing weights
     /*weights_start*//*weights_end*/
