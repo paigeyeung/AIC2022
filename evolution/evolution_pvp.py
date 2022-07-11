@@ -6,14 +6,15 @@ import numpy as np
 import copy
 import shutil
 
-SOURCE_FILENAME = "Troop_pvp.java"
+SOURCE_FILENAME_1 = "Troop_pvp_1.java"
+SOURCE_FILENAME_2 = "Troop_pvp_2.java"
 COPY_FILENAME_1 = "../src/wtest_evolution_pvp_1/Troop.java"
 COPY_FILENAME_2 = "../src/wtest_evolution_pvp_2/Troop.java"
 WEIGHTS_START = "/*weights_start*/"
 WEIGHTS_END = "/*weights_end*/"
 BIASES_START = "/*biases_start*/"
 BIASES_END = "/*biases_end*/"
-LAYER_SIZES = [12, 16, 16, 9]
+LAYER_SIZES = [15, 16, 16, 9]
 MODEL_FOLDER_NAME = "models/barbarian_duel"
 GAMES_FOLDER_NAME = "../games"
 PACKAGE_1 = "wtest_evolution_pvp_1"
@@ -24,12 +25,16 @@ NUM_DECIMALS = 8
 NUM_CREATURES_PER_GENERATION = 100
 NUM_SURVIVORS_PER_GENERATION = 20
 NUM_MUTATIONS_PER_SURVIVOR = 5
-NUM_MATCHUPS_PER_CREATURE = 5
+NUM_MATCHUPS_PER_CREATURE = 3
+# NUM_CREATURES_PER_GENERATION = 10
+# NUM_SURVIVORS_PER_GENERATION = 2
+# NUM_MUTATIONS_PER_SURVIVOR = 5
+# NUM_MATCHUPS_PER_CREATURE = 3
 INITIAL_RANGE = 5
-MUTATION_PERCENT_SD = 0.05
+MUTATION_PERCENT_SD = 0.1
 
-def copy_file(weights_string, biases_string, copy_filename):
-    with open(SOURCE_FILENAME, "r") as fin:
+def copy_file(weights_string, biases_string, source_filename, copy_filename):
+    with open(source_filename, "r") as fin:
         with open(copy_filename, "w") as fout:
             for line in fin:
                 if WEIGHTS_START in line and WEIGHTS_END in line:
@@ -104,30 +109,29 @@ def write_generation(generation, creatures):
 def randomize_seed():
     with open(BUILD_FILENAME, "r") as fin:
         lines = fin.readlines()
-    if bool(random.getrandbits(1)):
-        lines[0] = "package1=" + PACKAGE_1 + "\n"
-        lines[1] = "package2=" + PACKAGE_2 + "\n"
-    else:
-        lines[0] = "package1=" + PACKAGE_2 + "\n"
-        lines[1] = "package2=" + PACKAGE_1 + "\n"
+    lines[0] = "package1=" + PACKAGE_1 + "\n"
+    lines[1] = "package2=" + PACKAGE_2 + "\n"
     lines[2] = "map=" + random.choice(MAPS) + "\n"
     lines[3] = "seed=" + str(random.randint(0, 1000000)) + "\n"
     with open(BUILD_FILENAME, "w") as fout:
         fout.writelines(lines)
 
-def get_game_outcome(generation, game_number):
+def get_game_outcome():
     files = [f for f in os.listdir(GAMES_FOLDER_NAME) if os.path.isfile(os.path.join(GAMES_FOLDER_NAME, f))]
     for file in files:
         if ".txt" in file:
-            shutil.copyfile(f"{GAMES_FOLDER_NAME}/{file}", f"{MODEL_FOLDER_NAME}/replay_{generation}_{game_number}.txt")
-
             with open(f"{GAMES_FOLDER_NAME}/{file}") as f:
+                winner = ""
+                win_method = ""
                 line_num = 0
                 for line in f:
                     line_num += 1
                     if line_num == 6:
-                        return line.strip()
-    return 0
+                        winner = line.strip()
+                    elif line_num == 7:
+                        win_method = line.strip()
+                        return winner, win_method, file
+    return "A", "", ""
 
 def simulate_creatures(generation, creatures):
     creatures_num_games = {}
@@ -136,35 +140,39 @@ def simulate_creatures(generation, creatures):
         creatures[creature_index]["score"] = 0
 
     game_number = 0
-    while len(creatures_num_games) != 0:
+    while len(creatures_num_games) > 1:
         start_time = time.time()
 
         creature_1_index, _ = random.choice(list(creatures_num_games.items()))
         creature_2_index, _ = random.choice(list(creatures_num_games.items()))
         while creature_2_index == creature_1_index:
             creature_2_index, _ = random.choice(list(creatures_num_games.items()))
-        print("playing game between " + str(creature_1_index) + " and " + str(creature_2_index))
 
-        copy_file("final float[][][] weights = " + array_to_string(creatures[creature_1_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_1_index]["biases"]) + ";", COPY_FILENAME_1)
-        copy_file("final float[][][] weights = " + array_to_string(creatures[creature_2_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_2_index]["biases"]) + ";", COPY_FILENAME_2)
+        copy_file("final float[][][] weights = " + array_to_string(creatures[creature_1_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_1_index]["biases"]) + ";", SOURCE_FILENAME_1, COPY_FILENAME_1)
+        copy_file("final float[][][] weights = " + array_to_string(creatures[creature_2_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_2_index]["biases"]) + ";", SOURCE_FILENAME_2, COPY_FILENAME_2)
 
         randomize_seed()
         stream = os.popen("cd ..; rm -rf games; ant run")
         stream.read()
-        winner = get_game_outcome(generation, game_number)
-        print("winner is " + winner)
+        winner, win_method, file = get_game_outcome()
 
-        if winner == "A":
-            creatures[creature_1_index]["score"] += 1
-        else:
-            creatures[creature_2_index]["score"] += 1
+        if win_method != "Random":
+            if winner == "A":
+                creatures[creature_1_index]["score"] += 1
+                if creatures[creature_1_index]["score"] == NUM_MATCHUPS_PER_CREATURE:
+                    shutil.copyfile(f"{GAMES_FOLDER_NAME}/{file}", f"{MODEL_FOLDER_NAME}/replay_{generation}_{creature_1_index}.txt")
+            else:
+                creatures[creature_2_index]["score"] += 1
+                if creatures[creature_2_index]["score"] == NUM_MATCHUPS_PER_CREATURE:
+                    shutil.copyfile(f"{GAMES_FOLDER_NAME}/{file}", f"{MODEL_FOLDER_NAME}/replay_{generation}_{creature_2_index}.txt")
 
         creatures_num_games[creature_1_index] += 1
         creatures_num_games[creature_2_index] += 1
 
         end_time = time.time()
         time_elapsed = end_time - start_time
-        print("creature " + str(creature_1_index) + " (" + str(creatures[creature_1_index]["score"]) + "-" + str(creatures_num_games[creature_1_index] - creatures[creature_1_index]["score"]) + "), creature " + str(creature_2_index) + " (" + str(creatures[creature_2_index]["score"]) + "-" + str(creatures_num_games[creature_2_index] - creatures[creature_2_index]["score"]) + "), (" + str(round(time_elapsed, 2)) + "s)")
+        print("game " + str(game_number) + ", creature " + str(creature_1_index) + " (" + str(creatures[creature_1_index]["score"]) + "-" + str(creatures_num_games[creature_1_index] - creatures[creature_1_index]["score"]) + "), creature " + str(creature_2_index) + " (" + str(creatures[creature_2_index]["score"]) + "-" + str(creatures_num_games[creature_2_index] - creatures[creature_2_index]["score"]) + "), (" + str(round(time_elapsed, 2)) + "s)")
+        game_number += 1
 
         if creatures_num_games[creature_1_index] >= NUM_MATCHUPS_PER_CREATURE:
             del creatures_num_games[creature_1_index]
@@ -178,11 +186,11 @@ def mutate_creature(creature):
         for neuron_index in range(LAYER_SIZES[layer_index]):
             if layer_index != len(LAYER_SIZES) - 1:
                 for next_neuron_index in range(LAYER_SIZES[layer_index + 1]):
-                    creature["weights"][layer_index][neuron_index][next_neuron_index] = round(np.random.normal(loc=creature["weights"][layer_index][neuron_index][next_neuron_index], scale=creature["weights"][layer_index][neuron_index][next_neuron_index] * MUTATION_PERCENT_SD), NUM_DECIMALS)
+                    creature["weights"][layer_index][neuron_index][next_neuron_index] = round(np.random.normal(loc=creature["weights"][layer_index][neuron_index][next_neuron_index], scale=abs(creature["weights"][layer_index][neuron_index][next_neuron_index] * MUTATION_PERCENT_SD)), NUM_DECIMALS)
     for layer_index in range(len(LAYER_SIZES)):
         for neuron_index in range(LAYER_SIZES[layer_index]):
             if layer_index != 0:
-                creature["biases"][layer_index][neuron_index] = round(np.random.normal(loc=creature["biases"][layer_index][neuron_index], scale=creature["biases"][layer_index][neuron_index] * MUTATION_PERCENT_SD), NUM_DECIMALS)
+                creature["biases"][layer_index][neuron_index] = round(np.random.normal(loc=creature["biases"][layer_index][neuron_index], scale=abs(creature["biases"][layer_index][neuron_index] * MUTATION_PERCENT_SD)), NUM_DECIMALS)
     return creature
 
 def mutate_creatures(creatures):

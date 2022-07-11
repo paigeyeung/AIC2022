@@ -1,4 +1,4 @@
-package wtest_evolution_pvp_1;
+package wtest_evolution_pvp_2;
 
 import aic2022.user.*;
 import java.util.Arrays;
@@ -9,7 +9,7 @@ public class Troop extends AllyUnit {
     }
 
     // x input -> x hidden -> x hidden -> 9 output
-    final int[] LAYER_SIZES = {12, 16, 16, 9};
+    final int[] LAYER_SIZES = {15, 16, 16, 9};
     // Weights are outgoing weights
     /*weights_start*//*weights_end*/
     /*biases_start*//*biases_end*/
@@ -31,9 +31,6 @@ public class Troop extends AllyUnit {
     }
 
     void run() {
-        communication.downloadMapBoundariesAndEnemyBase();
-        communication.lookForMapBoundaries();
-
         if(uc.canAttack()) {
             UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, false);
             if(nearestEnemyOrNeutral != null) {
@@ -46,13 +43,13 @@ public class Troop extends AllyUnit {
 
         if(uc.canMove()) {
             if(loggingOn) uc.println("start (" + uc.getEnergyUsed() + " energy)");
-            float[] inputData = getInputData(nearestEnemyOrNeutral);
+            float[] inputData = getInputData();
             if(loggingOn) uc.println("inputData " + Arrays.toString(inputData) + " (" + uc.getEnergyUsed() + " energy)");
             float[] outputs = forwardPropagate(inputData);
             if(loggingOn) uc.println("outputs " + Arrays.toString(outputs) + " (" + uc.getEnergyUsed() + " energy)");
             Direction outputDirection = getDirectionFromOutputs(outputs);
             if(loggingOn) uc.println("outputDirection " + outputDirection + " (" + uc.getEnergyUsed() + " energy)");
-            tryMove(outputDirection);
+            tryMove(outputDirection, true);
         }
     }
 
@@ -73,6 +70,19 @@ public class Troop extends AllyUnit {
             allyBaseDirectionY = 1;
         else if(selfLocation.y > communication.allyBaseLocation.y)
             allyBaseDirectionY = -1;
+
+        float enemyBaseDistance = (float)Math.log(Math.sqrt(selfLocation.distanceSquared(communication.enemyBaseLocation)));
+
+        int enemyBaseDirectionX = 0;
+        int enemyBaseDirectionY = 0;
+        if(selfLocation.x < communication.enemyBaseLocation.x)
+            enemyBaseDirectionX = 1;
+        else if(selfLocation.x > communication.enemyBaseLocation.x)
+            enemyBaseDirectionX = -1;
+        if(selfLocation.y < communication.enemyBaseLocation.y)
+            enemyBaseDirectionY = 1;
+        else if(selfLocation.y > communication.enemyBaseLocation.y)
+            enemyBaseDirectionY = -1;
 
         int northEastNumAllies = 0;
         int northEastNumNeuralsOrEnemies = 0;
@@ -116,9 +126,14 @@ public class Troop extends AllyUnit {
             }
         }
 
+        if(loggingOn)
+            uc.println("selfHealth: " + selfHealth + ", allyBaseDistance: " + allyBaseDistance + ", allyBaseDirectionX: " + allyBaseDirectionX + ", allyBaseDirectionY: " + allyBaseDirectionY + ", enemyBaseDistance: " + enemyBaseDistance + ", enemyBaseDirectionX: " + enemyBaseDirectionX + ", enemyBaseDirectionY: " + enemyBaseDirectionY + ", northEastNumAllies: " + northEastNumAllies + ", northEastNumNeuralsOrEnemies: " + northEastNumNeuralsOrEnemies + ", southEastNumAllies: " + southEastNumAllies + ", southEastNumNeuralsOrEnemies: " + southEastNumNeuralsOrEnemies + ", southWestNumAllies: " + southWestNumAllies + ", southWestNumNeuralsOrEnemies: " + southWestNumNeuralsOrEnemies + ", northWestNumAllies: " + northWestNumAllies + ", northWestNumNeuralsOrEnemies: " + northWestNumNeuralsOrEnemies);
+
         return new float[]{
                 selfHealth, allyBaseDistance,
                 allyBaseDirectionX, allyBaseDirectionY,
+                enemyBaseDistance,
+                enemyBaseDirectionX, enemyBaseDirectionY,
                 northEastNumAllies, northEastNumNeuralsOrEnemies,
                 southEastNumAllies, southEastNumNeuralsOrEnemies,
                 southWestNumAllies, southWestNumNeuralsOrEnemies,

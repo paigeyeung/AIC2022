@@ -8,9 +8,16 @@ public class Base extends AllyUnit {
     }
 
     void runFirstTurn() {
-        communication.uploadAllyBase(uc.getLocation());
+        Location selfLocation = uc.getLocation();
+
+        communication.uploadAllyBase(selfLocation);
         communication.initializeBoundaries();
         communication.lookForMapBoundaries();
+
+        if(communication.mapWestBoundary == selfLocation.x - 1)
+            communication.uploadEnemyBaseLocation(new Location(selfLocation.x - 29, selfLocation.y));
+        else
+            communication.uploadEnemyBaseLocation(new Location(selfLocation.x + 29, selfLocation.y));
     }
 
     void run() {

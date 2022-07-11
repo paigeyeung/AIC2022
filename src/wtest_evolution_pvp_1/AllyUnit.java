@@ -28,10 +28,35 @@ public abstract class AllyUnit {
     abstract void runFirstTurn();
     abstract void run();
 
-    boolean tryMove(Direction moveDirection) {
-        if (uc.canMove(moveDirection)) {
+    boolean tryMove(Direction moveDirection, boolean tryAdjacentDirections) {
+        if(uc.canMove(moveDirection)) {
             uc.move(moveDirection);
             return true;
+        }
+        if(!tryAdjacentDirections)
+            return false;
+        Direction[] adjacentDirections;
+        if(moveDirection == Direction.NORTH)
+            adjacentDirections = new Direction[]{Direction.NORTHWEST, Direction.NORTHEAST};
+        else if(moveDirection == Direction.NORTHEAST)
+            adjacentDirections = new Direction[]{Direction.NORTH, Direction.EAST};
+        else if(moveDirection == Direction.EAST)
+            adjacentDirections = new Direction[]{Direction.NORTHEAST, Direction.SOUTHEAST};
+        else if(moveDirection == Direction.SOUTHEAST)
+            adjacentDirections = new Direction[]{Direction.EAST, Direction.SOUTH};
+        else if(moveDirection == Direction.SOUTH)
+            adjacentDirections = new Direction[]{Direction.SOUTHEAST, Direction.SOUTHWEST};
+        else if(moveDirection == Direction.SOUTHWEST)
+            adjacentDirections = new Direction[]{Direction.SOUTH, Direction.WEST};
+        else if(moveDirection == Direction.WEST)
+            adjacentDirections = new Direction[]{Direction.SOUTHWEST, Direction.NORTHWEST};
+        else
+            adjacentDirections = new Direction[]{Direction.WEST, Direction.NORTH};
+        for(Direction direction : adjacentDirections) {
+            if(uc.canMove(direction)) {
+                uc.move(direction);
+                return true;
+            }
         }
         return false;
     }

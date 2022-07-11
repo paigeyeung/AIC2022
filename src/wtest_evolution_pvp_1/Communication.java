@@ -202,6 +202,7 @@ public class Communication {
         enemyBaseLocation = location;
         uc.writeOnSharedArray(INDEX_ENEMY_BASE_CORNER, -2);
         uc.writeOnSharedArray(INDEX_ENEMY_BASE_LOCATION, encodeLocation(location));
+        if(loggingOn) uc.println("Communication uploadEnemyBaseLocation " + location);
     }
 
     void downloadMapBoundariesAndEnemyBase() {
