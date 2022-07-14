@@ -5,37 +5,54 @@ import time
 import numpy as np
 import copy
 import shutil
+import concurrent.futures
+from distutils.dir_util import copy_tree
 
-SOURCE_FILENAME_1 = "Troop_pvp_1.java"
-SOURCE_FILENAME_2 = "Troop_pvp_2.java"
-COPY_FILENAME_1 = "../src/wtest_evolution_pvp_1/Troop.java"
-COPY_FILENAME_2 = "../src/wtest_evolution_pvp_2/Troop.java"
+DUPLICATE_CORES_FOLDER_NAME = "duplicate_cores"
+TROOP_SOURCE_FILE_NAME_1 = "../src/wtest_evolution_pvp_1/Troop.java"
+TROOP_SOURCE_FILE_NAME_2 = "../src/wtest_evolution_pvp_2/Troop.java"
+TROOP_REPLACE_FILE_NAME_1 = "src/wtest_evolution_pvp_1/Troop.java"
+TROOP_REPLACE_FILE_NAME_2 = "src/wtest_evolution_pvp_2/Troop.java"
+BUILD_FILE_NAME = "build.defaults"
+GAMES_FOLDER_NAME = "games"
+MODEL_FOLDER_NAME = "models/barbarian_duel"
+
 WEIGHTS_START = "/*weights_start*/"
 WEIGHTS_END = "/*weights_end*/"
 BIASES_START = "/*biases_start*/"
 BIASES_END = "/*biases_end*/"
 LAYER_SIZES = [15, 16, 16, 9]
-MODEL_FOLDER_NAME = "models/barbarian_duel"
-GAMES_FOLDER_NAME = "../games"
 PACKAGE_1 = "wtest_evolution_pvp_1"
 PACKAGE_2 = "wtest_evolution_pvp_2"
 MAPS = ["Duel"]
-BUILD_FILENAME = "../build.defaults"
+NUM_CORES = 4
 NUM_DECIMALS = 8
 NUM_CREATURES_PER_GENERATION = 100
 NUM_SURVIVORS_PER_GENERATION = 20
 NUM_MUTATIONS_PER_SURVIVOR = 5
-NUM_MATCHUPS_PER_CREATURE = 3
-# NUM_CREATURES_PER_GENERATION = 10
-# NUM_SURVIVORS_PER_GENERATION = 2
-# NUM_MUTATIONS_PER_SURVIVOR = 5
-# NUM_MATCHUPS_PER_CREATURE = 3
+NUM_MATCHUPS_PER_CREATURE = 4
 INITIAL_RANGE = 5
 MUTATION_PERCENT_SD = 0.1
 
-def copy_file(weights_string, biases_string, source_filename, copy_filename):
-    with open(source_filename, "r") as fin:
-        with open(copy_filename, "w") as fout:
+def create_duplicate_cores():
+    stream = os.popen(f"rm -rf {DUPLICATE_CORES_FOLDER_NAME}")
+    stream.read()
+    for core in range(NUM_CORES):
+        os.makedirs(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}")
+        copy_tree(f"../jars", f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/jars")
+        os.makedirs(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/maps")
+        for map in MAPS:
+            shutil.copyfile(f"../maps/{map}.txt", f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/maps/{map}.txt")
+        os.makedirs(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/src")
+        copy_tree(f"../src/{PACKAGE_1}", f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/src/{PACKAGE_1}")
+        copy_tree(f"../src/{PACKAGE_2}", f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/src/{PACKAGE_2}")
+        shutil.copyfile(f"../AIC2022.iml", f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/AIC2022.iml")
+        shutil.copyfile(f"../build.defaults", f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/build.defaults")
+        shutil.copyfile(f"../build.xml", f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/build.xml")
+
+def copy_file(weights_string, biases_string, source_file_name, copy_file_name):
+    with open(source_file_name, "r") as fin:
+        with open(copy_file_name, "w") as fout:
             for line in fin:
                 if WEIGHTS_START in line and WEIGHTS_END in line:
                     fout.write(WEIGHTS_START + weights_string + WEIGHTS_END + "\n")
@@ -106,21 +123,21 @@ def write_generation(generation, creatures):
     with open(f"{MODEL_FOLDER_NAME}/generation_{generation}.json", "w") as f:
         json.dump(creatures, f)
 
-def randomize_seed():
-    with open(BUILD_FILENAME, "r") as fin:
+def randomize_seed(core):
+    with open(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{BUILD_FILE_NAME}", "r") as fin:
         lines = fin.readlines()
     lines[0] = "package1=" + PACKAGE_1 + "\n"
     lines[1] = "package2=" + PACKAGE_2 + "\n"
     lines[2] = "map=" + random.choice(MAPS) + "\n"
     lines[3] = "seed=" + str(random.randint(0, 1000000)) + "\n"
-    with open(BUILD_FILENAME, "w") as fout:
+    with open(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{BUILD_FILE_NAME}", "w") as fout:
         fout.writelines(lines)
 
-def get_game_outcome():
-    files = [f for f in os.listdir(GAMES_FOLDER_NAME) if os.path.isfile(os.path.join(GAMES_FOLDER_NAME, f))]
+def get_game_outcome(core):
+    files = [f for f in os.listdir(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{GAMES_FOLDER_NAME}") if os.path.isfile(os.path.join(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{GAMES_FOLDER_NAME}", f))]
     for file in files:
         if ".txt" in file:
-            with open(f"{GAMES_FOLDER_NAME}/{file}") as f:
+            with open(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{GAMES_FOLDER_NAME}/{file}") as f:
                 winner = ""
                 win_method = ""
                 line_num = 0
@@ -133,51 +150,82 @@ def get_game_outcome():
                         return winner, win_method, file
     return "A", "", ""
 
+def simulate_game(generation, game_number, core, creature_1, creature_2):
+    start_time = time.time()
+
+    copy_file("final float[][][] weights = " + array_to_string(creature_1["weights"]) + ";", "final float[][] biases = " + array_to_string(creature_1["biases"]) + ";", TROOP_SOURCE_FILE_NAME_1, f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{TROOP_REPLACE_FILE_NAME_1}")
+    copy_file("final float[][][] weights = " + array_to_string(creature_2["weights"]) + ";", "final float[][] biases = " + array_to_string(creature_2["biases"]) + ";", TROOP_SOURCE_FILE_NAME_2, f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{TROOP_REPLACE_FILE_NAME_2}")
+
+    randomize_seed(core)
+    stream = os.popen(f"cd {DUPLICATE_CORES_FOLDER_NAME}/core_{core}; rm -rf games; ant run")
+    stream.read()
+    winner, win_method, file = get_game_outcome(core)
+
+    creature_1_score_change = 0
+    creature_2_score_change = 0
+
+    if win_method != "Random":
+        if winner == "A":
+            creature_1["score"] += 1
+            creature_1_score_change += 1
+            if creature_1["score"] == NUM_MATCHUPS_PER_CREATURE:
+                shutil.copyfile(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{GAMES_FOLDER_NAME}/{file}", MODEL_FOLDER_NAME + "/replay_" + str(generation) + "_" + str(creature_1["index"]) + ".txt")
+        else:
+            creature_2["score"] += 1
+            creature_2_score_change += 1
+            if creature_2["score"] == NUM_MATCHUPS_PER_CREATURE:
+                shutil.copyfile(f"{DUPLICATE_CORES_FOLDER_NAME}/core_{core}/{GAMES_FOLDER_NAME}/{file}", MODEL_FOLDER_NAME + "/replay_" + str(generation) + "_" + str(creature_2["index"]) + ".txt")
+
+    end_time = time.time()
+    time_elapsed = end_time - start_time
+    print("game " + str(game_number) + ", creature " + str(creature_1["index"]) + " (" + str(creature_1["score"]) + "), creature " + str(creature_2["index"]) + " (" + str(creature_2["score"]) + "), (" + str(round(time_elapsed, 2)) + "s)")
+
+    return creature_1["index"], creature_1_score_change, creature_2["index"], creature_2_score_change
+
 def simulate_creatures(generation, creatures):
     creatures_num_games = {}
     for creature_index in range(len(creatures)):
         creatures_num_games[creature_index] = 0
         creatures[creature_index]["score"] = 0
 
+    games = []
     game_number = 0
-    while len(creatures_num_games) > 1:
-        start_time = time.time()
-
+    while len(creatures_num_games) >= 2:
+        core = game_number % NUM_CORES
         creature_1_index, _ = random.choice(list(creatures_num_games.items()))
         creature_2_index, _ = random.choice(list(creatures_num_games.items()))
         while creature_2_index == creature_1_index:
             creature_2_index, _ = random.choice(list(creatures_num_games.items()))
 
-        copy_file("final float[][][] weights = " + array_to_string(creatures[creature_1_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_1_index]["biases"]) + ";", SOURCE_FILENAME_1, COPY_FILENAME_1)
-        copy_file("final float[][][] weights = " + array_to_string(creatures[creature_2_index]["weights"]) + ";", "final float[][] biases = " + array_to_string(creatures[creature_2_index]["biases"]) + ";", SOURCE_FILENAME_2, COPY_FILENAME_2)
-
-        randomize_seed()
-        stream = os.popen("cd ..; rm -rf games; ant run")
-        stream.read()
-        winner, win_method, file = get_game_outcome()
-
-        if win_method != "Random":
-            if winner == "A":
-                creatures[creature_1_index]["score"] += 1
-                if creatures[creature_1_index]["score"] == NUM_MATCHUPS_PER_CREATURE:
-                    shutil.copyfile(f"{GAMES_FOLDER_NAME}/{file}", f"{MODEL_FOLDER_NAME}/replay_{generation}_{creature_1_index}.txt")
-            else:
-                creatures[creature_2_index]["score"] += 1
-                if creatures[creature_2_index]["score"] == NUM_MATCHUPS_PER_CREATURE:
-                    shutil.copyfile(f"{GAMES_FOLDER_NAME}/{file}", f"{MODEL_FOLDER_NAME}/replay_{generation}_{creature_2_index}.txt")
+        games.append((game_number, core, creature_1_index, creature_2_index))
 
         creatures_num_games[creature_1_index] += 1
         creatures_num_games[creature_2_index] += 1
-
-        end_time = time.time()
-        time_elapsed = end_time - start_time
-        print("game " + str(game_number) + ", creature " + str(creature_1_index) + " (" + str(creatures[creature_1_index]["score"]) + "-" + str(creatures_num_games[creature_1_index] - creatures[creature_1_index]["score"]) + "), creature " + str(creature_2_index) + " (" + str(creatures[creature_2_index]["score"]) + "-" + str(creatures_num_games[creature_2_index] - creatures[creature_2_index]["score"]) + "), (" + str(round(time_elapsed, 2)) + "s)")
-        game_number += 1
 
         if creatures_num_games[creature_1_index] >= NUM_MATCHUPS_PER_CREATURE:
             del creatures_num_games[creature_1_index]
         if creatures_num_games[creature_2_index] >= NUM_MATCHUPS_PER_CREATURE:
             del creatures_num_games[creature_2_index]
+
+        game_number += 1
+
+    while len(games) > 0:
+        run_games = []
+        for core in range(NUM_CORES):
+            if len(games) == 0:
+                break
+            run_games.append(games.pop(0))
+        print("running games " + str(run_games))
+
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            processes = []
+            for game in run_games:
+                process = executor.submit(simulate_game, generation, game[0], game[1], creatures[game[2]], creatures[game[3]])
+                processes.append(process)
+            for results in concurrent.futures.as_completed(processes):
+                result = results.result()
+                creatures[result[0]]["score"] += result[1]
+                creatures[result[2]]["score"] += result[3]
 
     return creatures
 
@@ -215,10 +263,14 @@ def mutate_creatures(creatures):
     return new_creatures
 
 def run():
+    print("making duplicate cores")
+    create_duplicate_cores()
+
     print("running " + MODEL_FOLDER_NAME)
     generation = get_next_generation()
     print("next generation " + str(generation))
     creatures = []
+
     if generation == 0:
         print("generating initial creatures")
         creatures = generate_initial_creatures()
@@ -241,4 +293,5 @@ def run():
         write_generation(generation, creatures)
         generation += 1
 
-run()
+if __name__ == "__main__":
+    run()
