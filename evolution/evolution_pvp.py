@@ -15,7 +15,7 @@ TROOP_REPLACE_FILE_NAME_1 = "src/wtest_evolution_pvp_1/Troop.java"
 TROOP_REPLACE_FILE_NAME_2 = "src/wtest_evolution_pvp_2/Troop.java"
 BUILD_FILE_NAME = "build.defaults"
 GAMES_FOLDER_NAME = "games"
-MODEL_FOLDER_NAME = "models/barbarian_duel"
+MODEL_FOLDER_NAME = "models/barbarian_all"
 
 WEIGHTS_START = "/*weights_start*/"
 WEIGHTS_END = "/*weights_end*/"

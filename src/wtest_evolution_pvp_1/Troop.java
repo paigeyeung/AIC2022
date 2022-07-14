@@ -32,7 +32,7 @@ public class Troop extends AllyUnit {
 
     void run() {
         if(uc.canAttack()) {
-            UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, false);
+            UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, true);
             if(nearestEnemyOrNeutral != null) {
                 if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
                 int damage = tryAttack(nearestEnemyOrNeutral.getLocation());
