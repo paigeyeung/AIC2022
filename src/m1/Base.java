@@ -15,27 +15,40 @@ public class Base extends AllyUnit {
         communication.uploadAllyBase(uc.getLocation());
         communication.initializeMapBoundariesAndEnemyBaseCorners();
         communication.lookForMapBoundaries();
-        communication.guessEnemyBaseCorners();
     }
 
     void run() {
         communication.downloadMapBoundariesAndEnemyBase();
-        Direction dir = getRandomDirection();
-
-        if (uc.canSpawn(UnitType.EXPLORER, dir) &&
-                (explorersSpawned < 3 || explorersSpawned < 0.1*totalSpawned)) {
-            uc.spawn(UnitType.EXPLORER, dir);
-            explorersSpawned++;
-            totalSpawned++;
-            uc.println("BASE: Spawning EXPLORER at " + uc.getLocation().add(dir));
-        }
-        else if (uc.canSpawn(UnitType.BARBARIAN, dir)) {
-            uc.spawn(UnitType.BARBARIAN, dir);
-            barbariansSpawned++;
-            totalSpawned++;
-            uc.println("BASE: Spawning BARBARIAN at " + uc.getLocation().add(dir));
-        }
 
         attackNearbyEnemyOrNeutral();
+
+        UnitType spawnUnitType;
+        if(explorersSpawned < 2)
+            spawnUnitType = UnitType.EXPLORER;
+        else
+            spawnUnitType = UnitType.BARBARIAN;
+
+        if(spawnUnitType == null)
+            return;
+
+        Direction spawnDirection = getSpawnDirection(spawnUnitType);
+        if(spawnDirection == null)
+            return;
+
+        uc.spawn(spawnUnitType, spawnDirection);
+        if(spawnUnitType == UnitType.EXPLORER)
+            explorersSpawned++;
+        else if(spawnUnitType == UnitType.BARBARIAN)
+            barbariansSpawned++;
+        totalSpawned++;
+        uc.println("BASE: Spawning " + spawnUnitType + " towards " + spawnDirection);
+    }
+
+    Direction getSpawnDirection(UnitType unitType) {
+        for(Direction direction : directions) {
+            if(uc.canSpawn(unitType, direction))
+                return direction;
+        }
+        return null;
     }
 }

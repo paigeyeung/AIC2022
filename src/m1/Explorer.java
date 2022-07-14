@@ -19,7 +19,9 @@ public class Explorer extends AllyUnit {
         communication.downloadMapBoundariesAndEnemyBase();
         communication.lookForMapBoundaries();
 
-        Location myLocation = uc.getLocation();
+        attackNearbyEnemyOrNeutral();
+
+        Location selfLocation = uc.getLocation();
 
         Direction movementDir = communication.getExplorerMovementDir();
 
@@ -43,7 +45,7 @@ public class Explorer extends AllyUnit {
                     uc.println("Explorer set destination to " + dest.toString());
                 }
                 else if (communication.enemyBaseCorners == -1) {
-                    dest = new Location((int)(Math.random()*30) + myLocation.x, (int)(Math.random()*30) + myLocation.y);
+                    dest = new Location((int)(Math.random()*30) + selfLocation.x, (int)(Math.random()*30) + selfLocation.y);
                     movementDir = getDirectionTo(dest);
                 }
                 else {
@@ -55,7 +57,6 @@ public class Explorer extends AllyUnit {
             }
         }
 
-        attackNearbyEnemyOrNeutral();
         tryAdjMoves(movementDir);
     }
 

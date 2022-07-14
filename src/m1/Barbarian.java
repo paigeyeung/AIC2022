@@ -16,8 +16,10 @@ public class Barbarian extends AllyUnit {
 
     void run() {
         communication.downloadMapBoundariesAndEnemyBase();
-        attackNearbyEnemyOrNeutral();
-        Location loc = uc.getLocation();
+        communication.lookForMapBoundaries();
+
+        if(attackAndMoveToClosestEnemyOrNeutral())
+            return;
 
         int myAction = getAction();
         uc.println("Barbarian action " + myAction);

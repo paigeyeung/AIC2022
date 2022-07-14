@@ -113,6 +113,7 @@ public class Communication {
 
             if(!uc.isOutOfMap(newLocation)) {
                 uploadMapBoundary(direction, boundary);
+                guessEnemyBaseCorners();
                 return;
             }
         }
