@@ -1,4 +1,4 @@
-package p2;
+package p3;
 
 import aic2022.user.*;
 
@@ -31,7 +31,8 @@ public class Explorer extends AllyUnit {
         if (movementDir == null ||
                 (communication.foundBoundary(movementDir) && !communication.allBoundariesFound())) {
             communication.setExplorerMovementDir();
-            movementDir = communication.getExplorerMovementDir();
+            Location newDest = communication.destOfBoundary(communication.getExplorerMovementDir());
+            movementDir = getDirectionTo(newDest);
             uc.println("Explorer set movement direction to " + movementDir.toString());
         }
         else if (communication.allBoundariesFound()) {
@@ -45,7 +46,9 @@ public class Explorer extends AllyUnit {
                     dest = new Location((int)(Math.random()*30) + myLocation.x, (int)(Math.random()*30) + myLocation.y);
                     movementDir = getDirectionTo(dest);
                 }
-                else movementDir = getRandomDirection();
+                else {
+                    movementDir = getRandomMoveDirection();
+                }
             }
             else {
                 movementDir = getDirectionTo(dest);
@@ -68,13 +71,14 @@ public class Explorer extends AllyUnit {
                 Location adj = myLocation.add(dir);
                 int newDist = adj.distanceSquared(dest);
                 int newF = (int)Math.sqrt(newDist) * 4 + getVisited(adj);
+                uc.println("Explorer: Cost of moving in direction " + dir + " is " + newF);
 
                 if(newF < f) {
                     f = newF;
                     movementDir = dir;
                 }
                 else if(newF == f){
-                    if(((int)Math.random()*2)==0) {
+                    if((int)(Math.random()*2)==0) {
                         f = newF;
                         movementDir = dir;
                     }
@@ -83,7 +87,7 @@ public class Explorer extends AllyUnit {
         }
 
         if (movementDir != null) {
-            tryAdjMoves(movementDir);
+            uc.println("Explorer moving in " + movementDir + " -- " + tryAdjMoves(movementDir));
         }
         return movementDir;
     }

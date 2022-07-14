@@ -1,4 +1,4 @@
-package p2;
+package p3;
 
 import aic2022.user.*;
 
@@ -37,13 +37,16 @@ public class Barbarian extends AllyUnit {
                 uc.println("Barbarian action ATTACK");
                 uc.println("Barbarian set destination to enemy base " + dest.toString());
             }
-            else movementDir = communication.getExplorerMovementDir();
+            else {
+                uc.println("Barbarian is exploring");
+                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+            }
 //            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
         }
         // Hold
         else if (myAction == 2) {
             uc.println("Barbarian action HOLD");
-            movementDir = getRandomDirection();
+            movementDir = getRandomMoveDirection();
         }
         //Retreat
         else if (myAction == 0) {
@@ -57,7 +60,6 @@ public class Barbarian extends AllyUnit {
 
     Direction getDirectionTo(Location destination) {
         Location myLocation = uc.getLocation();
-
         Direction movementDir = null;
 
         int f = Integer.MAX_VALUE;
@@ -67,13 +69,14 @@ public class Barbarian extends AllyUnit {
                 Location adj = myLocation.add(dir);
                 int newDist = adj.distanceSquared(dest);
                 int newF = (int)Math.sqrt(newDist) * 4 + getVisited(adj);
+                uc.println("Barbarian: Cost of moving in direction " + dir + " is " + newF);
 
                 if(newF < f) {
                     f = newF;
                     movementDir = dir;
                 }
                 else if(newF == f){
-                    if(((int)Math.random()*2)==0) {
+                    if((int)(Math.random()*2)==0) {
                         f = newF;
                         movementDir = dir;
                     }
@@ -82,10 +85,10 @@ public class Barbarian extends AllyUnit {
         }
 
         if (movementDir != null) {
-            tryAdjMoves(movementDir);
+            uc.println("Barbarian moving in " + movementDir + " -- " + tryAdjMoves(movementDir));
         }
 
-        uc.println("Barbarian wants to move to destination " + destination + ", moves in dir " + movementDir + "to " + myLocation.add(movementDir));
+        uc.println("Barbarian wants to move to destination " + destination + ", moves in dir " + movementDir + " to " + myLocation.add(movementDir));
         return movementDir;
     }
 }

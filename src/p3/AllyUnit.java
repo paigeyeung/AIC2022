@@ -1,4 +1,4 @@
-package p2;
+package p3;
 
 import aic2022.user.*;
 public abstract class AllyUnit {
@@ -55,6 +55,15 @@ public abstract class AllyUnit {
         return directions[(int) (Math.random() * 8)];
     }
 
+    Direction getRandomMoveDirection() {
+        Direction dir = directions[(int) (Math.random() * 8)];
+        int k = 0;
+        while(!uc.canMove(dir) && k < 10) {
+            dir = directions[(int) (Math.random() * 8)];
+        }
+        return dir;
+    }
+
     boolean tryRandomMove() {
         for (int i = 0; i < 10; i++) {
             Direction dir = getRandomDirection();
@@ -75,6 +84,7 @@ public abstract class AllyUnit {
     }
 
     boolean tryAdjMoves(Direction dir) {
+        if(dir == null) return false;
         if (tryMove(dir))  {
             return true;
         }

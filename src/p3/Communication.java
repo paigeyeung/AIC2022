@@ -1,4 +1,4 @@
-package p2;
+package p3;
 
 import aic2022.user.*;
 
@@ -255,6 +255,22 @@ public class Communication {
 
         uc.println("Communication found boundary " + dir + "? " + found);
         return found;
+    }
+
+    Location destOfBoundary(Direction dir) {
+        int x = uc.getLocation().x;
+        int y = uc.getLocation().y;
+        if(dir == Direction.NORTH || dir == Direction.NORTHEAST || dir == Direction.NORTHWEST)
+            y = Math.max(mapNorthBoundary, 1000);
+        else if(dir == Direction.SOUTH || dir == Direction.SOUTHEAST || dir == Direction.SOUTHWEST)
+            y = Math.min(mapSouthBoundary, 0);
+
+        if(dir == Direction.EAST || dir == Direction.SOUTHEAST || dir == Direction.NORTHEAST)
+            x = Math.max(mapEastBoundary, 1000);
+        else if(dir == Direction.WEST || dir == Direction.NORTHWEST || dir == Direction.SOUTHWEST)
+            x = Math.min(mapWestBoundary, 0);
+
+        return new Location(x,y);
     }
 
     boolean allBoundariesFound() {

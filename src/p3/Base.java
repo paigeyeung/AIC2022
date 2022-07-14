@@ -1,4 +1,4 @@
-package p1;
+package p3;
 
 import aic2022.user.*;
 
@@ -13,8 +13,9 @@ public class Base extends AllyUnit {
 
     void runFirstTurn() {
         communication.uploadAllyBase(uc.getLocation());
-        communication.initializeBoundaries();
+        communication.initializeMapBoundariesAndEnemyBaseCorners();
         communication.lookForMapBoundaries();
+        communication.guessEnemyBaseCorners();
     }
 
     void run() {
@@ -26,15 +27,13 @@ public class Base extends AllyUnit {
             uc.spawn(UnitType.EXPLORER, dir);
             explorersSpawned++;
             totalSpawned++;
-            uc.println("BASE: Explorer spawned");
+            uc.println("BASE: Spawning EXPLORER at " + uc.getLocation().add(dir));
         }
         else if (uc.canSpawn(UnitType.BARBARIAN, dir)) {
             uc.spawn(UnitType.BARBARIAN, dir);
             barbariansSpawned++;
             totalSpawned++;
-            uc.println("BASE: Barbarian spawned");
+            uc.println("BASE: Spawning BARBARIAN at " + uc.getLocation().add(dir));
         }
-
-        uc.println("BASE: Total spawned (Explorers | Barbarians): " + explorersSpawned + " | " + barbariansSpawned);
     }
 }
