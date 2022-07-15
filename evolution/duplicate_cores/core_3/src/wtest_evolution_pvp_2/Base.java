@@ -23,7 +23,7 @@ public class Base extends AllyUnit {
     void run() {
         trySpawn(UnitType.BARBARIAN);
 
-        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, false);
+        UnitInfo nearestEnemyOrNeutral = getNearestEnemyOrNeutral(true, true);
         if(nearestEnemyOrNeutral != null) {
             if(loggingOn) uc.println("nearestEnemyOrNeutral " + nearestEnemyOrNeutral.getLocation());
             int damage = tryAttack(nearestEnemyOrNeutral.getLocation());

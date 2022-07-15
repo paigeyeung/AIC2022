@@ -11,12 +11,13 @@ public class Barbarian extends AllyUnit {
 
     void runFirstTurn() {
         communication.downloadAllyBase();
-        communication.downloadMapBoundariesAndEnemyBase();
+        communication.downloadMapBoundariesAndCornerTracking();
     }
 
     void run() {
-        communication.downloadMapBoundariesAndEnemyBase();
+        communication.downloadMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
+        communication.lookForEnemyBase();
 
         if(attackAndMoveToClosestEnemyOrNeutral())
             return;
@@ -33,7 +34,7 @@ public class Barbarian extends AllyUnit {
 
         // If attack
         if (myAction == 3)  {
-            if(communication.enemyBaseCorners == -2) {
+            if(communication.cornerTrackingStatus == 2) {
                 dest = communication.enemyBaseLocation;
                 movementDir = getDirectionTo(dest);
                 uc.println("Barbarian action ATTACK");

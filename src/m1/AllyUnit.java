@@ -121,7 +121,7 @@ public abstract class AllyUnit {
             }
 
             if(visibleEnemy.getType() == UnitType.BASE) {
-                communication.uploadEnemyBase(visibleEnemy.getLocation());
+                communication.uploadEnemyBaseLocation(visibleEnemy.getLocation());
             }
         }
 

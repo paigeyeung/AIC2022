@@ -15,7 +15,7 @@ TROOP_REPLACE_FILE_NAME_1 = "src/wtest_evolution_pvp_1/Troop.java"
 TROOP_REPLACE_FILE_NAME_2 = "src/wtest_evolution_pvp_2/Troop.java"
 BUILD_FILE_NAME = "build.defaults"
 GAMES_FOLDER_NAME = "games"
-MODEL_FOLDER_NAME = "models/barbarian_all"
+MODEL_FOLDER_NAME = "models/barbarian_duel"
 
 WEIGHTS_START = "/*weights_start*/"
 WEIGHTS_END = "/*weights_end*/"
@@ -30,7 +30,7 @@ NUM_DECIMALS = 8
 NUM_CREATURES_PER_GENERATION = 100
 NUM_SURVIVORS_PER_GENERATION = 20
 NUM_MUTATIONS_PER_SURVIVOR = 5
-NUM_MATCHUPS_PER_CREATURE = 4
+NUM_MATCHUPS_PER_CREATURE = 5
 INITIAL_RANGE = 5
 MUTATION_PERCENT_SD = 0.1
 

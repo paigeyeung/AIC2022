@@ -13,12 +13,13 @@ public class Base extends AllyUnit {
 
     void runFirstTurn() {
         communication.uploadAllyBase(uc.getLocation());
-        communication.initializeMapBoundariesAndEnemyBaseCorners();
+        communication.initializeMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
+        communication.determineAllyBaseCornerFrom2Boundaries();
     }
 
     void run() {
-        communication.downloadMapBoundariesAndEnemyBase();
+        communication.downloadMapBoundariesAndCornerTracking();
 
         attackNearbyEnemyOrNeutral();
 

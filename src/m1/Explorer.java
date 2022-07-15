@@ -12,12 +12,13 @@ public class Explorer extends AllyUnit {
 
     void runFirstTurn() {
         communication.downloadAllyBase();
-        communication.downloadMapBoundariesAndEnemyBase();
+        communication.downloadMapBoundariesAndCornerTracking();
     }
 
     void run() {
-        communication.downloadMapBoundariesAndEnemyBase();
+        communication.downloadMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
+        communication.lookForEnemyBase();
 
         attackNearbyEnemyOrNeutral();
 
@@ -30,8 +31,9 @@ public class Explorer extends AllyUnit {
 //            moveTo(dest);
 //            uc.println("Explorer set destination to " + dest.toString());
 //        }
-        if (movementDir == null ||
-                (communication.foundBoundary(movementDir) && !communication.allBoundariesFound())) {
+
+        if (movementDir == null || (communication.foundBoundary(movementDir)
+                && !communication.allBoundariesFound())) {
             communication.setExplorerMovementDir();
             Location newDest = communication.destOfBoundary(communication.getExplorerMovementDir());
             movementDir = getDirectionTo(newDest);
@@ -39,12 +41,12 @@ public class Explorer extends AllyUnit {
         }
         else if (communication.allBoundariesFound()) {
             if (dest == null) {
-                if(communication.enemyBaseCorners == -2) {
+                if(communication.cornerTrackingStatus == 2) {
                     dest = communication.enemyBaseLocation;
                     movementDir = getDirectionTo(dest);
                     uc.println("Explorer set destination to " + dest.toString());
                 }
-                else if (communication.enemyBaseCorners == -1) {
+                else if (communication.cornerTrackingStatus == 0) {
                     dest = new Location((int)(Math.random()*30) + selfLocation.x, (int)(Math.random()*30) + selfLocation.y);
                     movementDir = getDirectionTo(dest);
                 }

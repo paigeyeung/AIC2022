@@ -28,4 +28,6 @@ hs_err_pid*
 logs
 games
 */build.defaults
+
 evolution/models
+evolution/duplicate_cores
