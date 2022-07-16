@@ -1,4 +1,4 @@
-package m1;
+package m2;
 
 import aic2022.user.*;
 

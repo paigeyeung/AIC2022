@@ -1,4 +1,4 @@
-package m1;
+package m2;
 
 import aic2022.user.*;
 
@@ -396,25 +396,38 @@ public class Communication {
     }
 
     Direction getPossibleEnemyBaseCorner() {
-        if(cornerTrackingStatus != 1)
-            return null;
+        if(cornerTrackingStatus == 0) {
+            if(mapNorthBoundary == UNINITIALIZED_BOUNDARY && mapWestBoundary == UNINITIALIZED_BOUNDARY)
+                return Direction.NORTHWEST;
+            if(mapNorthBoundary == UNINITIALIZED_BOUNDARY && mapEastBoundary == UNINITIALIZED_BOUNDARY)
+                return Direction.NORTHEAST;
+            if(mapSouthBoundary == UNINITIALIZED_BOUNDARY && mapWestBoundary == UNINITIALIZED_BOUNDARY)
+                return Direction.SOUTHWEST;
+            if(mapSouthBoundary == UNINITIALIZED_BOUNDARY && mapEastBoundary == UNINITIALIZED_BOUNDARY)
+                return Direction.SOUTHEAST;
+        }
 
-        for(int i = 0; i < 4; i++) {
-            if (((enemyBaseCorners >> i) & 1) == 1) {
-                if(i == 0)
-                    return Direction.NORTHWEST;
-                if(i == 1)
-                    return Direction.NORTHEAST;
-                if(i == 2)
-                    return Direction.SOUTHWEST;
-                if(i == 3)
-                    return Direction.SOUTHEAST;
+        if(cornerTrackingStatus == 1) {
+            for(int i = 0; i < 4; i++) {
+                if (((enemyBaseCorners >> i) & 1) == 1) {
+                    if(i == 0)
+                        return Direction.NORTHWEST;
+                    if(i == 1)
+                        return Direction.NORTHEAST;
+                    if(i == 2)
+                        return Direction.SOUTHWEST;
+                    if(i == 3)
+                        return Direction.SOUTHEAST;
+                }
             }
         }
+
         return null;
     }
 
     void uploadEnemyBaseLocation(Location enemyBaseLocation) {
+        cornerTrackingStatus = 2;
+        uc.writeOnSharedArray(INDEX_CORNER_TRACKING_STATUS, cornerTrackingStatus);
         this.enemyBaseLocation = enemyBaseLocation;
         uc.writeOnSharedArray(INDEX_ENEMY_BASE_LOCATION, encodeLocation(enemyBaseLocation));
         uc.println("Communication uploadEnemyBaseLocation " + enemyBaseLocation);

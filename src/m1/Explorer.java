@@ -5,7 +5,6 @@ import aic2022.user.*;
 public class Explorer extends AllyUnit {
     Location dest = null;
 
-    //    Direction movementDir = getRandomDirection();
     Explorer(UnitController uc) {
         super(uc);
     }
@@ -37,7 +36,7 @@ public class Explorer extends AllyUnit {
             communication.setExplorerMovementDir();
             Location newDest = communication.destOfBoundary(communication.getExplorerMovementDir());
             movementDir = getDirectionTo(newDest);
-            uc.println("Explorer set movement direction to " + movementDir.toString());
+            uc.println("Explorer set movement direction to " + movementDir);
         }
         else if (communication.allBoundariesFound()) {
             if (dest == null) {

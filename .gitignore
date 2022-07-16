@@ -27,6 +27,7 @@ hs_err_pid*
 .idea
 logs
 games
+challenges
 */build.defaults
 
 evolution/models
