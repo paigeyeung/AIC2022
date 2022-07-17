@@ -21,7 +21,8 @@ public class Explorer extends AllyUnit {
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();
 
-        attackNearbyEnemyOrNeutralOrShrine();
+        if(attackNearbyEnemyOrNeutralOrShrine() == 2)
+            return;
 
         Location selfLocation = uc.getLocation();
 
