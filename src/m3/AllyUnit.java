@@ -111,24 +111,24 @@ public abstract class AllyUnit {
         UnitInfo highestAttackScoreUnit = null;
         float highestAttackScore = 0;
 
-        UnitInfo[] visibleEnemies = uc.senseUnits(opponent);
-        for (UnitInfo visibleEnemy : visibleEnemies) {
-            float attackScore = getAttackScore(visibleEnemy);
+        UnitInfo[] attackableEnemies = uc.senseUnits(selfAttackRange, opponent);
+        for (UnitInfo attackableEnemy : attackableEnemies) {
+            float attackScore = getAttackScore(attackableEnemy);
             if(attackScore > highestAttackScore) {
-                highestAttackScoreUnit = visibleEnemy;
+                highestAttackScoreUnit = attackableEnemy;
                 highestAttackScore = attackScore;
             }
 
-            if(visibleEnemy.getType() == UnitType.BASE) {
-                communication.uploadEnemyBaseLocation(visibleEnemy.getLocation());
+            if(attackableEnemy.getType() == UnitType.BASE) {
+                communication.uploadEnemyBaseLocation(attackableEnemy.getLocation());
             }
         }
 
-        UnitInfo[] visibleNeutrals = uc.senseUnits(neutral);
-        for (UnitInfo visibleNeutral : visibleNeutrals) {
-            float attackScore = getAttackScore(visibleNeutral);
+        UnitInfo[] attackableNeutrals = uc.senseUnits(selfAttackRange, neutral);
+        for (UnitInfo attackableNeutral : attackableNeutrals) {
+            float attackScore = getAttackScore(attackableNeutral);
             if(attackScore > highestAttackScore) {
-                highestAttackScoreUnit = visibleNeutral;
+                highestAttackScoreUnit = attackableNeutral;
                 highestAttackScore = attackScore;
             }
         }
@@ -139,11 +139,11 @@ public abstract class AllyUnit {
             return true;
         }
 
-        ShrineInfo[] visibleShrines = uc.senseShrines();
-        for(ShrineInfo visibleShrine : visibleShrines) {
-            if(visibleShrine.getOwner() != ally) {
-                uc.println("attackNearbyEnemyOrNeutralOrShrine visibleShrine: " + visibleShrine.getLocation());
-                tryAttack(visibleShrine.getLocation());
+        ShrineInfo[] attackableShrines = uc.senseShrines(selfAttackRange);
+        for(ShrineInfo attackableShrine : attackableShrines) {
+            if(attackableShrine.getOwner() != ally) {
+                uc.println("attackNearbyEnemyOrNeutralOrShrine attackableShrine: " + attackableShrine.getLocation());
+                tryAttack(attackableShrine.getLocation());
                 return true;
             }
         }
