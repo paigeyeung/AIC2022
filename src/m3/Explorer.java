@@ -26,7 +26,12 @@ public class Explorer extends AllyUnit {
 
         Location selfLocation = uc.getLocation();
 
-        if(communication.cornerTrackingStatus == 0
+        ChestInfo closestChest = findClosestChest();
+        if(closestChest != null) {
+            dest = closestChest.getLocation();
+            openNearbyChests();
+        }
+        else if(communication.cornerTrackingStatus == 0
                 || (communication.cornerTrackingStatus == 1
                 && !communication.allBoundariesFound())) {
             uc.println("Explorer looking for boundaries");
@@ -41,23 +46,9 @@ public class Explorer extends AllyUnit {
         }
         else if(communication.cornerTrackingStatus == 2) {
             uc.println("Explorer already found enemy base");
-            ChestInfo closestChest = findClosestChest();
-            if(closestChest != null && !uc.isObstructed(uc.getLocation(), closestChest.getLocation())) {
-                dest = closestChest.getLocation();
-                openNearbyChests();
-            }
-//            else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
-//                insideDungeon = true;
-//            }
-//            else if(uc.getRound() % 400 > 350 && tryEnterDungeon() && insideDungeon) {
-//                insideDungeon = false;
-//            }
-            else if(dest == null || selfLocation.distanceSquared(dest) < 2
+            if(dest == null || selfLocation.distanceSquared(dest) < 2
                     || (!movedLastTurn && Math.random() * 10 <= 1))
-                dest = new Location(communication.mapWestBoundary + (int)(Math.random()
-                        * (communication.mapEastBoundary - communication.mapWestBoundary)),
-                        communication.mapSouthBoundary + (int)(Math.random()
-                                * (communication.mapNorthBoundary - communication.mapSouthBoundary)));
+                dest = communication.getRandomDestination();
         }
 
         uc.println("Explorer dest: " + dest);

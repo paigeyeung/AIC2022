@@ -40,10 +40,11 @@ public class Communication {
     final int INDEX_ENEMY_BASE_LOCATION = 8;
     final int INDEX_MOVEMENT = 9;
     final int INDEX_CALL_FOR_HELP = 10;
-
-    final int INDEX_DUNGEON_ENTRANCE = 13;
     final int INDEX_TALLY_EXPLORERS = 11;
     final int INDEX_TALLY_BARBARIANS = 12;
+    final int INDEX_DUNGEON_ENTRANCE = 13;
+    final int INDEX_GROUP_CENTER_LOCATION = 14;
+    final int INDEX_GROUP_ACTION = 15;
 //    final int INDEX_LOCATIONS = 1000;
 
     // Coordinate max value is 79 + 1000 < 2^11
@@ -457,6 +458,25 @@ public class Communication {
         }
     }
 
+    Location getRandomDestination() {
+        if(allBoundariesFound())
+            return new Location(mapWestBoundary + (int)(Math.random()
+                    * (mapEastBoundary - mapWestBoundary)), mapSouthBoundary + (int)(Math.random()
+                            * (mapNorthBoundary - mapSouthBoundary)));
+
+        Location selfLocation = uc.getLocation();
+        if(mapNorthBoundary == UNINITIALIZED_BOUNDARY && mapSouthBoundary != UNINITIALIZED_BOUNDARY)
+            return new Location(selfLocation.x + (int)(Math.random() * 10 - 5), selfLocation.y + 50);
+        if(mapNorthBoundary != UNINITIALIZED_BOUNDARY && mapSouthBoundary == UNINITIALIZED_BOUNDARY)
+            return new Location(selfLocation.x + (int)(Math.random() * 10 - 5), selfLocation.y - 50);
+        if(mapWestBoundary == UNINITIALIZED_BOUNDARY && mapEastBoundary != UNINITIALIZED_BOUNDARY)
+            return new Location(selfLocation.x - 50, selfLocation.y  + (int)(Math.random() * 10 - 5));
+        if(mapWestBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary == UNINITIALIZED_BOUNDARY)
+            return new Location(selfLocation.x + 50, selfLocation.y  + (int)(Math.random() * 10 - 5));
+
+        return new Location(selfLocation.x + (int)(Math.random() * 10 - 5), selfLocation.y + (int)(Math.random() * 10 - 5));
+    }
+
     Direction setExplorerMovementDir() {
         int randomNumber = (int)(Math.random()*8);
         int k = 0;
@@ -571,17 +591,22 @@ public class Communication {
                 direction.isEqual(Direction.WEST);
     }
 
-    void callForHelp() {
-        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, encodeLocation(uc.getLocation())+1);
+    void initializeCallForHelp() {
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, -1);
+    }
+
+    void callForHelp(Location location) {
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, encodeLocation(location));
     }
 
     void cancelCallForHelp() {
-        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, 0);
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, -1);
     }
 
     Location getHelpLocation() {
-        int encoded = uc.readOnSharedArray(INDEX_CALL_FOR_HELP)-1;
-        if (encoded == 0) return null;
+        int encoded = uc.readOnSharedArray(INDEX_CALL_FOR_HELP);
+        if (encoded == -1)
+            return null;
         return decodeLocation(encoded);
     }
 

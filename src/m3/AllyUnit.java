@@ -271,28 +271,28 @@ public abstract class AllyUnit {
         UnitInfo[] visibleUnits = uc.senseUnits(team);
         for (UnitInfo visibleUnit : visibleUnits) {
             if(visibleUnit.getType() == UnitType.EXPLORER) {
-                combatScore += 5;
+                combatScore += 10;
             }
             else if(visibleUnit.getType() == UnitType.BARBARIAN) {
-                combatScore += 20;
+                combatScore += 100;
             }
             else if(visibleUnit.getType() == UnitType.BASE) {
-                combatScore += 100;
+                combatScore += 300;
             }
             else if(visibleUnit.getType() == UnitType.ASSASSIN) {
                 combatScore += 50;
             }
             else if(visibleUnit.getType() == UnitType.CLERIC) {
-                combatScore += 5;
+                combatScore += 10;
             }
             else if(visibleUnit.getType() == UnitType.KNIGHT) {
-                combatScore += 30;
+                combatScore += 100;
             }
             else if(visibleUnit.getType() == UnitType.MAGE) {
                 combatScore += 50;
             }
             else if(visibleUnit.getType() == UnitType.RANGER) {
-                combatScore += 15;
+                combatScore += 30;
             }
         }
         return combatScore;
@@ -352,9 +352,9 @@ public abstract class AllyUnit {
         if(chests.length > 0) {
             for(ChestInfo chest : chests) {
                 Location chestLocation = chest.getLocation();
-                int newDist = location.distanceSquared(chest.getLocation());
+                int newDist = location.distanceSquared(chestLocation);
                 if(newDist < minDist && (chest.getGold() > 0 || chest.getReputation() > 0)) {
-                    minDist = newDist - chest.getGold()/10 - chest.getReputation()/10;
+                    minDist = newDist - chest.getGold() / 10 - chest.getReputation() / 10;
                     closestChest = chest;
                 }
             }

@@ -33,42 +33,89 @@ public class Barbarian extends AllyUnit {
 
 //        Direction movementDir = null;
 //
+//        // If attack
+//        if (myAction == 3)  {
+//            if(communication.cornerTrackingStatus == 2) {
+//                dest = communication.enemyBaseLocation;
+//                movementDir = getDirectionTo(dest);
+//                uc.println("Barbarian action ATTACK");
+//                uc.println("Barbarian set destination to enemy base " + dest.toString());
+//            }
+//            else {
+//                uc.println("Barbarian is exploring");
+////                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+//
+//                ChestInfo closestChest = findClosestChest();
+//                if(closestChest != null && !uc.isObstructed(uc.getLocation(), closestChest.getLocation())) {
+//                    movementDir = getDirectionTo(closestChest.getLocation());
+//                    openNearbyChests();
+//                    uc.println("Barbarian is going to treasure chests");
+//                }
+//                else if (uc.getRound() % 400 < 250 && communication.getEntranceLocation() != null) {
+//                    movementDir = getDirectionTo(communication.getEntranceLocation());
+//                }
+//                else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
+//                    insideDungeon = true;
+//                    uc.println("Barbarian entered a dungeon");
+//                }
+//                else if(uc.getRound() % 400 > 350 && tryEnterDungeon() && insideDungeon) {
+//                    insideDungeon = false;
+//                    uc.println("Barbarian exited a dungeon");
+//                }
+//                else {
+//                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+//                    uc.println("Barbarian is moving randomly");
+//                }
+//            }
+////            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
+//        }
+//        // Hold
+//        else if (myAction == 2) {
+//            uc.println("Barbarian action HOLD");
+//            movementDir = getRandomMoveDirection();
+//        }
+//        //Retreat
+//        else if (myAction == 0) {
+//            dest = communication.allyBaseLocation;
+//            movementDir = getDirectionTo(dest);
+//            uc.println("Barbarian set destination to ally base " + dest.toString());
+//        }
+//
+//        tryAdjMoves(movementDir);
 
-        Direction movementDir = null;
+        int round = uc.getRound();
 
+        ChestInfo closestChest = findClosestChest();
+        if(closestChest != null) {
+            dest = closestChest.getLocation();
+            openNearbyChests();
+        }
         // If attack
-        if (myAction == 3)  {
+        else if (myAction == 3)  {
             if(communication.cornerTrackingStatus == 2) {
                 dest = communication.enemyBaseLocation;
-                movementDir = getDirectionTo(dest);
                 uc.println("Barbarian action ATTACK");
-                uc.println("Barbarian set destination to enemy base " + dest.toString());
+                uc.println("Barbarian set destination to enemy base: " + dest);
             }
             else {
                 uc.println("Barbarian is exploring");
-//                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
 
-                ChestInfo closestChest = findClosestChest();
-                if(closestChest != null && !uc.isObstructed(uc.getLocation(), closestChest.getLocation())) {
-                    movementDir = getDirectionTo(closestChest.getLocation());
-                    openNearbyChests();
-                    uc.println("Barbarian is going to treasure chests");
+                if (round % 400 < 250 && communication.getEntranceLocation() != null) {
+                    dest = communication.getEntranceLocation();
                 }
-                else if (uc.getRound() % 400 < 250 && communication.getEntranceLocation() != null) {
-                    movementDir = getDirectionTo(communication.getEntranceLocation());
-
-                }
-                else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
+                else if(round % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
+                    dest = null;
                     insideDungeon = true;
                     uc.println("Barbarian entered a dungeon");
                 }
-                else if(uc.getRound() % 400 > 350 && tryEnterDungeon() && insideDungeon) {
+                else if(round % 400 > 350 && tryEnterDungeon() && insideDungeon) {
+                    dest = null;
                     insideDungeon = false;
                     uc.println("Barbarian exited a dungeon");
                 }
                 else {
-                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
                     uc.println("Barbarian is moving randomly");
+                    dest = communication.getRandomDestination();
                 }
             }
 //            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
@@ -76,16 +123,16 @@ public class Barbarian extends AllyUnit {
         // Hold
         else if (myAction == 2) {
             uc.println("Barbarian action HOLD");
-            movementDir = getRandomMoveDirection();
+            dest = communication.getRandomDestination();
         }
         //Retreat
         else if (myAction == 0) {
             dest = communication.allyBaseLocation;
-            movementDir = getDirectionTo(dest);
-            uc.println("Barbarian set destination to ally base " + dest.toString());
+            uc.println("Barbarian set destination to ally base: " + dest);
         }
 
-        tryAdjMoves(movementDir);
+        if(dest != null)
+            tryAdjMoves(getDirectionTo(dest));
     }
 
     Direction getDirectionTo(Location destination) {

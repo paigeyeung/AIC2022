@@ -16,6 +16,7 @@ public class Base extends AllyUnit {
         communication.initializeMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
         communication.determineAllyBaseCornerFrom2Boundaries();
+        communication.initializeCallForHelp();
     }
 
     void run() {
@@ -23,19 +24,25 @@ public class Base extends AllyUnit {
 
         attackNearbyEnemyOrNeutralOrShrine();
 
-        if(getCombatScore(Team.NEUTRAL) + getCombatScore(uc.getOpponent()) > getCombatScore(uc.getTeam())) {
-            communication.callForHelp();
+        Location selfLocation = uc.getLocation();
+
+        if(getCombatScore(neutral) + getCombatScore(opponent) > getCombatScore(ally)) {
+            communication.callForHelp(selfLocation);
         }
-        else if(getCombatScore(Team.NEUTRAL) + getCombatScore(uc.getOpponent()) < getCombatScore(uc.getTeam()) * 0.5) {
+        else if(getCombatScore(neutral) + getCombatScore(opponent) < getCombatScore(ally) * 0.5) {
             communication.cancelCallForHelp();
         }
+
+        int round = uc.getRound();
         
         int explorersAlive = communication.getExplorerTally();
         int barbariansAlive = communication.getBarbarianTally();
 
         while(true) {
             UnitType spawnUnitType;
-            if(explorersSpawned < 2 && explorersAlive < 1)
+            if(explorersSpawned < 1)
+                spawnUnitType = UnitType.EXPLORER;
+            else if(explorersSpawned < 2 && explorersAlive < 1 && round > 500)
                 spawnUnitType = UnitType.EXPLORER;
             else
                 spawnUnitType = UnitType.BARBARIAN;
