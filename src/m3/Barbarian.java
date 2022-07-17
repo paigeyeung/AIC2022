@@ -3,7 +3,14 @@ package m3;
 import aic2022.user.*;
 
 public class Barbarian extends AllyUnit {
+    Location assemblyLocation;
     Location dest = null;
+
+    boolean doDungeons;
+    int action = 0; // 0 is just spawned, 1 is in assembly, 2 is moving from assembly to group, 3 is in group
+
+    final int WITHIN_GROUP_MAX_DISTANCE = 20;
+    final int NUM_TROOPS_PER_ASSEMBLY = 5;
 
     Barbarian(UnitController uc) {
         super(uc);
@@ -12,127 +19,139 @@ public class Barbarian extends AllyUnit {
     void runFirstTurn() {
         communication.downloadAllyBase();
         communication.downloadMapBoundariesAndCornerTracking();
+
+        doDungeons = (int)(Math.random() * 5) == 1;
     }
 
+    void runSecondTurn() {}
+
     void run() {
-        communication.addToTally();
+        communication.addSelfToTally();
         communication.downloadMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();
 
-        if(attackAndMoveToClosestEnemyOrNeutralOrShrine())
+        if(assemblyLocation == null) {
+            assemblyLocation = communication.getAssemblyLocation();
+            if(assemblyLocation == null)
+                return;
+        }
+
+        if(attackAndMoveToClosestEnemyOrNeutralOrShrine()) {
+            uc.println("Barbarian chasing enemy");
             return;
-
-        int myAction = getAction();
-        uc.println("Barbarian action " + myAction);
-
-//        if(dest != null && (loc.distanceSquared(dest) > 9 ||
-//                uc.senseUnits(opponent).length > 0)) {
-//            moveTo(dest);
-//        }
-
-//        Direction movementDir = null;
-//
-//        // If attack
-//        if (myAction == 3)  {
-//            if(communication.cornerTrackingStatus == 2) {
-//                dest = communication.enemyBaseLocation;
-//                movementDir = getDirectionTo(dest);
-//                uc.println("Barbarian action ATTACK");
-//                uc.println("Barbarian set destination to enemy base " + dest.toString());
-//            }
-//            else {
-//                uc.println("Barbarian is exploring");
-////                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
-//
-//                ChestInfo closestChest = findClosestChest();
-//                if(closestChest != null && !uc.isObstructed(uc.getLocation(), closestChest.getLocation())) {
-//                    movementDir = getDirectionTo(closestChest.getLocation());
-//                    openNearbyChests();
-//                    uc.println("Barbarian is going to treasure chests");
-//                }
-//                else if (uc.getRound() % 400 < 250 && communication.getEntranceLocation() != null) {
-//                    movementDir = getDirectionTo(communication.getEntranceLocation());
-//                }
-//                else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
-//                    insideDungeon = true;
-//                    uc.println("Barbarian entered a dungeon");
-//                }
-//                else if(uc.getRound() % 400 > 350 && tryEnterDungeon() && insideDungeon) {
-//                    insideDungeon = false;
-//                    uc.println("Barbarian exited a dungeon");
-//                }
-//                else {
-//                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
-//                    uc.println("Barbarian is moving randomly");
-//                }
-//            }
-////            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
-//        }
-//        // Hold
-//        else if (myAction == 2) {
-//            uc.println("Barbarian action HOLD");
-//            movementDir = getRandomMoveDirection();
-//        }
-//        //Retreat
-//        else if (myAction == 0) {
-//            dest = communication.allyBaseLocation;
-//            movementDir = getDirectionTo(dest);
-//            uc.println("Barbarian set destination to ally base " + dest.toString());
-//        }
-//
-//        tryAdjMoves(movementDir);
-
-        int round = uc.getRound();
+        }
 
         ChestInfo closestChest = findClosestChest();
         if(closestChest != null) {
             dest = closestChest.getLocation();
             openNearbyChests();
-        }
-        // If attack
-        else if (myAction == 3)  {
-            if(communication.cornerTrackingStatus == 2) {
-                dest = communication.enemyBaseLocation;
-                uc.println("Barbarian action ATTACK");
-                uc.println("Barbarian set destination to enemy base: " + dest);
-            }
-            else {
-                uc.println("Barbarian is exploring");
 
-                if (round % 400 < 250 && communication.getEntranceLocation() != null) {
-                    dest = communication.getEntranceLocation();
-                }
-                else if(round % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
-                    dest = null;
-                    insideDungeon = true;
-                    uc.println("Barbarian entered a dungeon");
-                }
-                else if(round % 400 > 350 && tryEnterDungeon() && insideDungeon) {
-                    dest = null;
-                    insideDungeon = false;
-                    uc.println("Barbarian exited a dungeon");
-                }
-                else {
-                    uc.println("Barbarian is moving randomly");
-                    dest = communication.getRandomDestination();
-                }
-            }
-//            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
-        }
-        // Hold
-        else if (myAction == 2) {
-            uc.println("Barbarian action HOLD");
-            dest = communication.getRandomDestination();
-        }
-        //Retreat
-        else if (myAction == 0) {
-            dest = communication.allyBaseLocation;
-            uc.println("Barbarian set destination to ally base: " + dest);
-        }
-
-        if(dest != null)
+            uc.println("Barbarian opening chest " + dest);
             tryAdjMoves(getDirectionTo(dest));
+            return;
+        }
+
+//        if(doDungeons) {
+//
+//        }
+//        int round = uc.getRound();
+//        if (round % 400 < 250 && communication.getEntranceLocation() != null) {
+//            dest = communication.getEntranceLocation();
+//
+//            uc.println("Barbarian entering dungeon " + dest);
+//            tryAdjMoves(getDirectionTo(dest));
+//            return;
+//        }
+//        if(round % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
+//            uc.println("Barbarian entered a dungeon");
+//            insideDungeon = true;
+//            return;
+//        }
+//        if(round % 400 > 350 && tryEnterDungeon() && insideDungeon) {
+//            uc.println("Barbarian exited a dungeon");
+//            insideDungeon = false;
+//            return;
+//        }
+//        if(insideDungeon) {
+//            uc.println("Barbarian is moving randomly in dungeon");
+//            dest = communication.getRandomDestination();
+//
+//            tryAdjMoves(getDirectionTo(dest));
+//            return;
+//        }
+
+        Location selfLocation = uc.getLocation();
+
+        int distanceSquaredToAssemblyLocation = selfLocation.distanceSquared(assemblyLocation);
+
+        if(action == 0) {
+            uc.println("Barbarian moving to assembly " + assemblyLocation);
+            dest = assemblyLocation;
+
+            if(distanceSquaredToAssemblyLocation <= WITHIN_GROUP_MAX_DISTANCE) {
+                uc.println("Barbarian joined assembly");
+                communication.addSelfToAssembly();
+                action = 1;
+            }
+
+            tryAdjMoves(getDirectionTo(dest));
+            return;
+        }
+
+        Location lastGroupCenterLocation = communication.getLastGroupCenterLocation();
+        int lastNumTroopsInAssembly = communication.getLastAssemblyNumTroops();
+
+        if(action == 1) {
+            uc.println("Barbarian waiting in assembly with " + lastNumTroopsInAssembly + " troops");
+            dest = assemblyLocation;
+            communication.addSelfToAssembly();
+
+            if(lastNumTroopsInAssembly >= NUM_TROOPS_PER_ASSEMBLY) {
+                uc.println("Barbarian assembly moving to group " + lastGroupCenterLocation);
+                dest = lastGroupCenterLocation;
+                action = 2;
+            }
+
+            tryAdjMoves(getDirectionTo(dest));
+            return;
+        }
+
+        int distanceSquaredToLastGroupCenterLocation = selfLocation.distanceSquared(lastGroupCenterLocation);
+
+        if(action == 2) {
+            uc.println("Barbarian moving to group");
+            dest = lastGroupCenterLocation;
+
+            if(distanceSquaredToLastGroupCenterLocation <= WITHIN_GROUP_MAX_DISTANCE) {
+                uc.println("Barbarian joined group");
+                communication.addSelfToGroup();
+                action = 3;
+            }
+
+            tryAdjMoves(getDirectionTo(dest));
+            return;
+        }
+
+        if(action == 3) {
+            if(distanceSquaredToLastGroupCenterLocation > WITHIN_GROUP_MAX_DISTANCE) {
+                uc.println("Barbarian rejoining group " + lastGroupCenterLocation);
+                dest = lastGroupCenterLocation;
+                action = 2;
+
+                tryAdjMoves(getDirectionTo(dest));
+                return;
+            }
+
+            communication.addSelfToGroup();
+
+            Location groupAttackLocation = communication.getGroupAttackLocation();
+            uc.println("Barbarian moving with group to " + groupAttackLocation);
+            dest = groupAttackLocation;
+
+            tryAdjMoves(getDirectionTo(dest));
+            return;
+        }
     }
 
     Direction getDirectionTo(Location destination) {

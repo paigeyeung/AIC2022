@@ -19,6 +19,10 @@ public class Base extends AllyUnit {
         communication.initializeCallForHelp();
     }
 
+    void runSecondTurn() {
+        communication.determineAssemblyLocation();
+    }
+
     void run() {
         communication.downloadMapBoundariesAndCornerTracking();
 
@@ -27,10 +31,7 @@ public class Base extends AllyUnit {
         Location selfLocation = uc.getLocation();
 
         if(getCombatScore(neutral) + getCombatScore(opponent) > getCombatScore(ally)) {
-            communication.callForHelp(selfLocation);
-        }
-        else if(getCombatScore(neutral) + getCombatScore(opponent) < getCombatScore(ally) * 0.5) {
-            communication.cancelCallForHelp();
+            communication.setGroupAttack(selfLocation, 4, false);
         }
 
         int round = uc.getRound();
@@ -64,7 +65,22 @@ public class Base extends AllyUnit {
             uc.println("Base spawning " + spawnUnitType + " towards " + spawnDirection);
         }
 
+        Location currentGroupAttackLocation = communication.getGroupAttackLocation();
+        Location lastGroupCenterLocation = communication.getLastGroupCenterLocation();
+        if(currentGroupAttackLocation == null || lastGroupCenterLocation == null
+                || Math.random() * 10 <= 1) {
+            communication.setGroupAttack(communication.getRandomDestination(), 1, false);
+        }
+        else if(currentGroupAttackLocation.distanceSquared(lastGroupCenterLocation) <= 20
+                || Math.random() * 20 <= 1) {
+            communication.setGroupAttack(communication.getRandomDestination(), 1, true);
+        }
+        else if(communication.cornerTrackingStatus == 2) {
+            communication.setGroupAttack(communication.enemyBaseLocation, 2, false);
+        }
+
         communication.resetTallies();
+        communication.resetGroupAndAssembly();
     }
 
     Direction getSpawnDirection(UnitType unitType) {

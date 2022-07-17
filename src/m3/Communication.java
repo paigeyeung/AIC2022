@@ -43,8 +43,15 @@ public class Communication {
     final int INDEX_TALLY_EXPLORERS = 11;
     final int INDEX_TALLY_BARBARIANS = 12;
     final int INDEX_DUNGEON_ENTRANCE = 13;
-    final int INDEX_GROUP_CENTER_LOCATION = 14;
-    final int INDEX_GROUP_ACTION = 15;
+    final int INDEX_GROUP_CENTER_LOCATION_LAST = 14;
+    final int INDEX_GROUP_CENTER_LOCATION = 15;
+    final int INDEX_GROUP_NUM_TROOPS_LAST = 16;
+    final int INDEX_GROUP_NUM_TROOPS = 17;
+    final int INDEX_ASSEMBLY_NUM_TROOPS_LAST = 18;
+    final int INDEX_ASSEMBLY_NUM_TROOPS = 19;
+    final int INDEX_ASSEMBLY_LOCATION = 20;
+    final int INDEX_GROUP_ATTACK_LOCATION = 21;
+    final int INDEX_GROUP_ATTACK_PRIORITY = 22;
 //    final int INDEX_LOCATIONS = 1000;
 
     // Coordinate max value is 79 + 1000 < 2^11
@@ -474,7 +481,7 @@ public class Communication {
         if(mapWestBoundary != UNINITIALIZED_BOUNDARY && mapEastBoundary == UNINITIALIZED_BOUNDARY)
             return new Location(selfLocation.x + 50, selfLocation.y  + (int)(Math.random() * 10 - 5));
 
-        return new Location(selfLocation.x + (int)(Math.random() * 10 - 5), selfLocation.y + (int)(Math.random() * 10 - 5));
+        return new Location(selfLocation.x + (int)(Math.random() * 20 - 10), selfLocation.y + (int)(Math.random() * 20 - 10));
     }
 
     Direction setExplorerMovementDir() {
@@ -591,36 +598,16 @@ public class Communication {
                 direction.isEqual(Direction.WEST);
     }
 
-    void initializeCallForHelp() {
-        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, -1);
-    }
-
-    void callForHelp(Location location) {
-        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, encodeLocation(location));
-    }
-
-    void cancelCallForHelp() {
-        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, -1);
-    }
-
-    Location getHelpLocation() {
-        int encoded = uc.readOnSharedArray(INDEX_CALL_FOR_HELP);
-        if (encoded == -1)
-            return null;
-        return decodeLocation(encoded);
-    }
-
     void broadcastEntranceLocation(Location entrance) {
         uc.writeOnSharedArray(INDEX_DUNGEON_ENTRANCE, encodeLocation(entrance)+1);
     }
-
     Location getEntranceLocation() {
         int encoded = uc.readOnSharedArray(INDEX_DUNGEON_ENTRANCE)-1;
         if (encoded == -1) return null;
         return decodeLocation(encoded);
     }
 
-    void addToTally() {
+    void addSelfToTally() {
         UnitType selfType = uc.getType();
         if(selfType == UnitType.EXPLORER)
             uc.writeOnSharedArray(INDEX_TALLY_EXPLORERS, getExplorerTally() + 1);
@@ -636,5 +623,175 @@ public class Communication {
     void resetTallies() {
         uc.writeOnSharedArray(INDEX_TALLY_EXPLORERS, 0);
         uc.writeOnSharedArray(INDEX_TALLY_BARBARIANS, 0);
+    }
+
+    void initializeCallForHelp() {
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, -1);
+    }
+    void callForHelp(Location location) {
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, encodeLocation(location));
+    }
+    void cancelCallForHelp() {
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, -1);
+    }
+    Location getHelpLocation() {
+        int encoded = uc.readOnSharedArray(INDEX_CALL_FOR_HELP);
+        if (encoded == -1)
+            return null;
+        return decodeLocation(encoded);
+    }
+
+    Location getLastGroupCenterLocation() {
+        int encoded = uc.readOnSharedArray(INDEX_GROUP_CENTER_LOCATION_LAST);
+        if(encoded == -1)
+            return null;
+        return decodeLocation(encoded);
+    }
+    int getLastGroupNumTroops() {
+        return uc.readOnSharedArray(INDEX_GROUP_NUM_TROOPS_LAST);
+    }
+    int getLastAssemblyNumTroops() {
+        return uc.readOnSharedArray(INDEX_ASSEMBLY_NUM_TROOPS_LAST);
+    }
+
+    void addSelfToGroup() {
+        Location selfLocation = uc.getLocation();
+
+        int groupNumTroops = uc.readOnSharedArray(INDEX_GROUP_NUM_TROOPS) + 1;
+        uc.writeOnSharedArray(INDEX_GROUP_NUM_TROOPS, groupNumTroops);
+
+        if(groupNumTroops == 1) {
+            uc.println("Communication addSelfToGroup groupNumTroops: " + groupNumTroops + ", groupCenterLocation: " + selfLocation);
+            uc.writeOnSharedArray(INDEX_GROUP_CENTER_LOCATION, encodeLocation(selfLocation));
+            return;
+        }
+
+        Location groupCenterLocation = decodeLocation(uc.readOnSharedArray(INDEX_GROUP_CENTER_LOCATION));
+        int newX = Math.round(((float)groupCenterLocation.x * (groupNumTroops - 1)) / groupNumTroops
+                + (float)selfLocation.x / groupNumTroops);
+        int newY = Math.round(((float)groupCenterLocation.y * (groupNumTroops - 1)) / groupNumTroops
+                + (float)selfLocation.y / groupNumTroops);
+        Location newGroupCenterLocation = new Location(newX, newY);
+
+        uc.println("Communication addSelfToGroup groupNumTroops: " + groupNumTroops + ", groupCenterLocation: " + newGroupCenterLocation);
+        uc.writeOnSharedArray(INDEX_GROUP_CENTER_LOCATION, encodeLocation(newGroupCenterLocation));
+    }
+    void addSelfToAssembly() {
+        int assemblyNumTroops = uc.readOnSharedArray(INDEX_ASSEMBLY_NUM_TROOPS) + 1;
+        uc.writeOnSharedArray(INDEX_ASSEMBLY_NUM_TROOPS, assemblyNumTroops);
+    }
+
+    void resetGroupAndAssembly() {
+        int groupCenterLocation = uc.readOnSharedArray(INDEX_GROUP_CENTER_LOCATION);
+        uc.writeOnSharedArray(INDEX_GROUP_CENTER_LOCATION, -1);
+        uc.writeOnSharedArray(INDEX_GROUP_CENTER_LOCATION_LAST, groupCenterLocation);
+
+        int groupNumTroops = uc.readOnSharedArray(INDEX_GROUP_NUM_TROOPS);
+        uc.writeOnSharedArray(INDEX_GROUP_NUM_TROOPS, 0);
+        uc.writeOnSharedArray(INDEX_GROUP_NUM_TROOPS_LAST, groupNumTroops);
+
+        int assemblyNumTroops = uc.readOnSharedArray(INDEX_ASSEMBLY_NUM_TROOPS);
+        uc.writeOnSharedArray(INDEX_ASSEMBLY_NUM_TROOPS, 0);
+        uc.writeOnSharedArray(INDEX_ASSEMBLY_NUM_TROOPS_LAST, assemblyNumTroops);
+    }
+
+    void setGroupAttack(Location location, int priority, boolean overridePriority) {
+        int previousPriority = uc.readOnSharedArray(INDEX_GROUP_ATTACK_PRIORITY);
+        if(priority <= previousPriority && !overridePriority)
+            return;
+
+        uc.writeOnSharedArray(INDEX_GROUP_ATTACK_LOCATION, encodeLocation(location));
+        uc.writeOnSharedArray(INDEX_GROUP_ATTACK_PRIORITY, priority);
+        uc.println("Communication setGroupAttackLocation location: " + location + ", priority: " + priority);
+    }
+    Location getGroupAttackLocation() {
+        int encoded = uc.readOnSharedArray(INDEX_GROUP_ATTACK_LOCATION);
+        if(encoded == 0)
+            return null;
+        return decodeLocation(encoded);
+    }
+
+
+
+    Location getAssemblyLocation() {
+        int encoded = uc.readOnSharedArray(INDEX_ASSEMBLY_LOCATION);
+        if(encoded == 0)
+            return null;
+        return decodeLocation(encoded);
+    }
+    void determineAssemblyLocation() {
+        Location selfLocation = uc.getLocation();
+
+//        int tileGridDimensions = visionRangeTilesInOneDirection * 2 + 1;
+        int tileGridDimensions = 80;
+        int[][] tileScores = new int[tileGridDimensions][tileGridDimensions];
+
+        Location highestScoreLocation = null;
+        int highestScore = -1;
+
+        Location[] visibleLocations = uc.getVisibleLocations();
+        for(Location visibleLocation : visibleLocations) {
+            int tileX = visibleLocation.x - selfLocation.x + tileGridDimensions / 2;
+            int tileY = visibleLocation.y - selfLocation.y + tileGridDimensions / 2;
+            if(tileScores[tileX][tileY] == 0) {
+                int tileScore;
+                TileType tileType = uc.senseTileTypeAtLocation(visibleLocation);
+                if(tileType.equals(TileType.PLAINS))
+                    tileScore = 2;
+                else if(tileType.equals(TileType.FOREST))
+                    tileScore = 1;
+                else
+                    tileScore = -2;
+                tileScores[tileX][tileY] = tileScore;
+            }
+
+            if(tileScores[tileX][tileY] < 0)
+                continue;
+
+            int score = 0;
+
+            int distanceSquared = selfLocation.distanceSquared(visibleLocation);
+            if(distanceSquared >= 20)
+                score += 7;
+            else if(distanceSquared >= 10)
+                score += 5;
+
+            for(int x = -1; x <= 1; x++) {
+                for(int y = -1; y <= 1; y++) {
+                    int thisTileX = tileX + x;
+                    int thisTileY = tileY + y;
+                    if(tileScores[thisTileX][thisTileY] == 0) {
+                        Location thisLocation = new Location(visibleLocation.x + x, visibleLocation.y + y);
+                        int tileScore;
+                        if(uc.canSenseLocation(thisLocation)) {
+                            TileType tileType = uc.senseTileTypeAtLocation(thisLocation);
+                            if(tileType.equals(TileType.PLAINS))
+                                tileScore = 2;
+                            else if(tileType.equals(TileType.FOREST))
+                                tileScore = 1;
+                            else
+                                tileScore = -2;
+                        }
+                        else
+                            tileScore = -2;
+                        tileScores[thisTileX][thisTileY] = tileScore;
+                    }
+
+                    score += tileScores[thisTileX][thisTileY];
+                }
+            }
+
+            if(highestScoreLocation == null || score > highestScore) {
+                highestScoreLocation = visibleLocation;
+                highestScore = score;
+            }
+        }
+
+        if(highestScoreLocation != null) {
+            uc.println("Communication determineAssemblyLocation " + highestScoreLocation);
+            uc.writeOnSharedArray(INDEX_ASSEMBLY_LOCATION, encodeLocation(highestScoreLocation));
+            return;
+        }
+        uc.println("Communication determineAssemblyLocation not found");
     }
 }

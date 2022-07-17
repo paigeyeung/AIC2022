@@ -33,6 +33,7 @@ public abstract class AllyUnit {
     }
 
     abstract void runFirstTurn();
+    abstract void runSecondTurn();
     abstract void run();
 
     void runBefore() {
@@ -121,6 +122,7 @@ public abstract class AllyUnit {
                 highestAttackScore = attackScore;
             }
 
+            communication.setGroupAttack(attackableEnemy.getLocation(), 3, false);
             if(attackableEnemy.getType() == UnitType.BASE) {
                 communication.uploadEnemyBaseLocation(attackableEnemy.getLocation());
             }
@@ -133,6 +135,8 @@ public abstract class AllyUnit {
                 highestAttackScoreUnit = attackableNeutral;
                 highestAttackScore = attackScore;
             }
+
+            communication.setGroupAttack(attackableNeutral.getLocation(), 3, false);
         }
 
         if(highestAttackScoreUnit != null) {

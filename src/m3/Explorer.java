@@ -15,8 +15,10 @@ public class Explorer extends AllyUnit {
         communication.downloadMapBoundariesAndCornerTracking();
     }
 
+    void runSecondTurn() {}
+
     void run() {
-        communication.addToTally();
+        communication.addSelfToTally();
         communication.downloadMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();
@@ -53,36 +55,6 @@ public class Explorer extends AllyUnit {
 
         uc.println("Explorer dest: " + dest);
         movedLastTurn = tryAdjMoves(getDirectionTo(dest));
-
-//        Direction movementDir = communication.getExplorerMovementDir();
-//
-//        if (movementDir == null || (communication.foundBoundary(movementDir)
-//                && !communication.allBoundariesFound())) {
-//            communication.setExplorerMovementDir();
-//            Location newDest = communication.destOfBoundary(communication.getExplorerMovementDir());
-//            movementDir = getDirectionTo(newDest);
-//            uc.println("Explorer set movement direction to " + movementDir);
-//        }
-//        else if (communication.allBoundariesFound()) {
-//            if (dest == null) {
-//                if(communication.cornerTrackingStatus == 2) {
-//                    dest = communication.enemyBaseLocation;
-//                    movementDir = getDirectionTo(dest);
-//                    uc.println("Explorer set destination to " + dest.toString());
-//                }
-//                else if (communication.cornerTrackingStatus == 0) {
-//                    dest = new Location((int)(Math.random()*30) + selfLocation.x, (int)(Math.random()*30) + selfLocation.y);
-//                    movementDir = getDirectionTo(dest);
-//                }
-//                else {
-//                    movementDir = getRandomMoveDirection();
-//                }
-//            }
-//            else {
-//                movementDir = getDirectionTo(dest);
-//            }
-//        }
-//        tryAdjMoves(movementDir);
     }
 
     Direction getDirectionTo(Location destination) {

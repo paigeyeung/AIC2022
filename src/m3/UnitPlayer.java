@@ -17,13 +17,17 @@ public class UnitPlayer {
         else if(type == UnitType.BARBARIAN) u = new Barbarian(uc);
         else uc.println("😢🐻‍❄️");
 
-        boolean firstTurn = true;
+        int turn = 1;
         while(true) {
             if(u != null) {
-                if(firstTurn) {
+                if(turn == 1) {
                     u.runFirstTurn();
-                    firstTurn = false;
                 }
+                else if(turn == 2) {
+                    u.runSecondTurn();
+                }
+                turn++;
+
                 u.runBefore();
                 u.run();
                 u.runAfter();
