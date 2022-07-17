@@ -30,35 +30,35 @@ public class Barbarian extends AllyUnit {
 //            moveTo(dest);
 //        }
 
-//        Direction movementDir = null;
-//
-//        // If attack
-//        if (myAction == 3)  {
-//            if(communication.cornerTrackingStatus == 2) {
-//                dest = communication.enemyBaseLocation;
-//                movementDir = getDirectionTo(dest);
-//                uc.println("Barbarian action ATTACK");
-//                uc.println("Barbarian set destination to enemy base " + dest.toString());
-//            }
-//            else {
-//                uc.println("Barbarian is exploring");
-//                movementDir = getDirectionTo(communication. destOfBoundary(communication.getExplorerMovementDir()));
-//            }
-////            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
-//        }
-//        // Hold
-//        else if (myAction == 2) {
-//            uc.println("Barbarian action HOLD");
-//            movementDir = getRandomMoveDirection();
-//        }
-//        //Retreat
-//        else if (myAction == 0) {
-//            dest = communication.allyBaseLocation;
-//            movementDir = getDirectionTo(dest);
-//            uc.println("Barbarian set destination to ally base " + dest.toString());
-//        }
-//
-//        tryAdjMoves(movementDir);
+        Direction movementDir = null;
+
+        // If attack
+        if (myAction == 3)  {
+            if(communication.cornerTrackingStatus == 2) {
+                dest = communication.enemyBaseLocation;
+                movementDir = getDirectionTo(dest);
+                uc.println("Barbarian action ATTACK");
+                uc.println("Barbarian set destination to enemy base " + dest.toString());
+            }
+            else {
+                uc.println("Barbarian is exploring");
+//                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+            }
+//            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
+        }
+        // Hold
+        else if (myAction == 2) {
+            uc.println("Barbarian action HOLD");
+            movementDir = getRandomMoveDirection();
+        }
+        //Retreat
+        else if (myAction == 0) {
+            dest = communication.allyBaseLocation;
+            movementDir = getDirectionTo(dest);
+            uc.println("Barbarian set destination to ally base " + dest.toString());
+        }
+
+        tryAdjMoves(movementDir);
     }
 
     Direction getDirectionTo(Location destination) {
