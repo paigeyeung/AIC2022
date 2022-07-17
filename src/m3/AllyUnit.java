@@ -135,16 +135,16 @@ public abstract class AllyUnit {
 
         if(highestAttackScoreUnit != null) {
             uc.println("attackNearbyEnemyOrNeutralOrShrine highestAttackScoreUnit: " + highestAttackScoreUnit.getLocation() + ", highestAttackScore: " + highestAttackScore);
-            tryAttack(highestAttackScoreUnit.getLocation());
-            return true;
+            if(tryAttack(highestAttackScoreUnit.getLocation()))
+                return true;
         }
 
         ShrineInfo[] attackableShrines = uc.senseShrines(selfAttackRange);
         for(ShrineInfo attackableShrine : attackableShrines) {
             if(attackableShrine.getOwner() != ally) {
                 uc.println("attackNearbyEnemyOrNeutralOrShrine attackableShrine: " + attackableShrine.getLocation());
-                tryAttack(attackableShrine.getLocation());
-                return true;
+                if(tryAttack(attackableShrine.getLocation()))
+                    return true;
             }
         }
 
