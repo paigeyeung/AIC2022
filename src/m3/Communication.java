@@ -40,6 +40,8 @@ public class Communication {
     final int INDEX_ENEMY_BASE_LOCATION = 8;
     final int INDEX_MOVEMENT = 9;
     final int INDEX_CALL_FOR_HELP = 10;
+
+    final int INDEX_DUNGEON_ENTRANCE = 11;
 //    final int INDEX_LOCATIONS = 1000;
 
     // Coordinate max value is 79 + 1000 < 2^11
@@ -568,10 +570,26 @@ public class Communication {
     }
 
     void callForHelp() {
-        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, encodeLocation(uc.getLocation()));
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, encodeLocation(uc.getLocation())+1);
+    }
+
+    void cancelCallForHelp() {
+        uc.writeOnSharedArray(INDEX_CALL_FOR_HELP, 0);
     }
 
     Location getHelpLocation() {
-        return decodeLocation(uc.readOnSharedArray(INDEX_CALL_FOR_HELP));
+        int encoded = uc.readOnSharedArray(INDEX_CALL_FOR_HELP)-1;
+        if (encoded == 0) return null;
+        return decodeLocation(encoded);
+    }
+
+    void broadcastEntranceLocation(Location entrance) {
+        uc.writeOnSharedArray(INDEX_DUNGEON_ENTRANCE, encodeLocation(entrance)+1);
+    }
+
+    Location getEntranceLocation() {
+        int encoded = uc.readOnSharedArray(INDEX_DUNGEON_ENTRANCE)-1;
+        if (encoded == -1) return null;
+        return decodeLocation(encoded);
     }
 }

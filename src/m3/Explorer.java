@@ -39,7 +39,18 @@ public class Explorer extends AllyUnit {
         }
         else if(communication.cornerTrackingStatus == 2) {
             uc.println("Explorer already found enemy base");
-            if(dest == null || selfLocation.distanceSquared(dest) < 2
+            ChestInfo closestChest = findClosestChest();
+            if(closestChest != null && !uc.isObstructed(uc.getLocation(), closestChest.getLocation())) {
+                dest = closestChest.getLocation();
+                openNearbyChests();
+            }
+//            else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
+//                insideDungeon = true;
+//            }
+//            else if(uc.getRound() % 400 > 350 && tryEnterDungeon() && insideDungeon) {
+//                insideDungeon = false;
+//            }
+            else if(dest == null || selfLocation.distanceSquared(dest) < 2
                     || (!movedLastTurn && Math.random() * 10 <= 1))
                 dest = new Location(communication.mapWestBoundary + (int)(Math.random()
                         * (communication.mapEastBoundary - communication.mapWestBoundary)),

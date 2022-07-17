@@ -23,6 +23,13 @@ public class Base extends AllyUnit {
 
         attackNearbyEnemyOrNeutralOrShrine();
 
+        if(getCombatScore(Team.NEUTRAL) + getCombatScore(uc.getOpponent()) > getCombatScore(uc.getTeam())) {
+            communication.callForHelp();
+        }
+        else if(getCombatScore(Team.NEUTRAL) + getCombatScore(uc.getOpponent()) < getCombatScore(uc.getTeam()) * 0.5) {
+            communication.cancelCallForHelp();
+        }
+
         while(true) {
             UnitType spawnUnitType;
             if(explorersSpawned < 1)

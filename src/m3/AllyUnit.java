@@ -16,6 +16,8 @@ public abstract class AllyUnit {
 
     int turnsNoMove = 0;
 
+    boolean insideDungeon = false;
+
     boolean moved = false;
 
     AllyUnit(UnitController uc) {
@@ -299,12 +301,71 @@ public abstract class AllyUnit {
     int getAction() {
         int allyCombatScore = getCombatScore(ally);
         int enemyCombatScore = getCombatScore(opponent);
-        if (enemyCombatScore > 0.8 * allyCombatScore) {
+        if (enemyCombatScore > 0.8 * allyCombatScore || communication.getHelpLocation() != null) {
             return 0; // Retreat
         }
         else if (allyCombatScore > 1.5 * enemyCombatScore) {
             return 3; // Attack
         }
         return 2; // Hold
+    }
+
+    boolean openNearbyChests() {
+        ChestInfo[] chests = uc.senseChests(2);
+        if(chests.length > 0) {
+            for(ChestInfo chest : chests) {
+                Location chestLocation = chest.getLocation();
+                Direction openDirection = uc.getLocation().directionTo(chestLocation);
+                if(uc.canOpenChest(openDirection)) {
+                    uc.openChest(openDirection);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    boolean tryEnterDungeon() {
+        Location[] dungeonEntrances = uc.senseVisibleTiles(2, TileType.DUNGEON_ENTRANCE);
+        if(dungeonEntrances.length > 0) {
+            uc.println("Sensed dungeon entrance");
+            for (Location entrance : dungeonEntrances) {
+                Direction dirToEntrance = uc.getLocation().directionTo(entrance);
+                for (Direction exit : directions) {
+                    if (uc.canEnterDungeon(dirToEntrance, exit)) {
+                        uc.println("Entering dungeon from direction " + dirToEntrance + ", exit " + exit);
+                        uc.enterDungeon(dirToEntrance, exit);
+                        communication.broadcastEntranceLocation(entrance);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    ChestInfo findClosestChest() {
+        ChestInfo[] chests = uc.senseChests();
+        int minDist = Integer.MAX_VALUE;
+        ChestInfo closestChest = null;
+        Location location = uc.getLocation();
+        if(chests.length > 0) {
+            for(ChestInfo chest : chests) {
+                Location chestLocation = chest.getLocation();
+                int newDist = location.distanceSquared(chest.getLocation());
+                if(newDist < minDist && (chest.getGold() > 0 || chest.getReputation() > 0)) {
+                    minDist = newDist - chest.getGold()/10 - chest.getReputation()/10;
+                    closestChest = chest;
+                }
+            }
+        }
+        uc.println("Closest chest found is " + closestChest);
+        return closestChest;
+    }
+
+    int distanceSquaredToClosestChest() {
+        ChestInfo chest = findClosestChest();
+        if(chest == null) { return Integer.MAX_VALUE; }
+        return uc.getLocation().distanceSquared(chest.getLocation());
     }
 }

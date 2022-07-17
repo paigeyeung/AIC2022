@@ -46,7 +46,29 @@ public class Barbarian extends AllyUnit {
             else {
                 uc.println("Barbarian is exploring");
 //                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
-                movementDir = getRandomMoveDirection();
+
+                ChestInfo closestChest = findClosestChest();
+                if(closestChest != null && !uc.isObstructed(uc.getLocation(), closestChest.getLocation())) {
+                    movementDir = getDirectionTo(closestChest.getLocation());
+                    openNearbyChests();
+                    uc.println("Barbarian is going to treasure chests");
+                }
+                else if (uc.getRound() % 400 < 250 && communication.getEntranceLocation() != null) {
+                    movementDir = getDirectionTo(communication.getEntranceLocation());
+
+                }
+                else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
+                    insideDungeon = true;
+                    uc.println("Barbarian entered a dungeon");
+                }
+                else if(uc.getRound() % 400 > 350 && tryEnterDungeon() && insideDungeon) {
+                    insideDungeon = false;
+                    uc.println("Barbarian exited a dungeon");
+                }
+                else {
+                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+                    uc.println("Barbarian is moving randomly");
+                }
             }
 //            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
         }
