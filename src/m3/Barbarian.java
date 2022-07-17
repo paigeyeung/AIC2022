@@ -19,7 +19,7 @@ public class Barbarian extends AllyUnit {
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();
 
-        if(attackAndMoveToClosestEnemyOrNeutral())
+        if(attackAndMoveToClosestEnemyOrNeutralOrShrine())
             return;
 
         int myAction = getAction();

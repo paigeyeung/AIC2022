@@ -21,7 +21,7 @@ public class Base extends AllyUnit {
     void run() {
         communication.downloadMapBoundariesAndCornerTracking();
 
-        attackNearbyEnemyOrNeutral();
+        attackNearbyEnemyOrNeutralOrShrine();
 
         while(true) {
             UnitType spawnUnitType;
