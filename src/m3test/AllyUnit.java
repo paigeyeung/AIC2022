@@ -137,16 +137,22 @@ public abstract class AllyUnit {
 
         if(highestAttackScoreUnit != null) {
             uc.println("attackNearbyEnemyOrNeutralOrShrine highestAttackScoreUnit: " + highestAttackScoreUnit.getLocation() + ", highestAttackScore: " + highestAttackScore);
-            if(tryAttack(highestAttackScoreUnit.getLocation()))
+            if(tryAttack(highestAttackScoreUnit.getLocation())) {
                 return 1;
+            }
         }
 
         ShrineInfo[] attackableShrines = uc.senseShrines(selfAttackRange);
         for(ShrineInfo attackableShrine : attackableShrines) {
             if(attackableShrine.getOwner() != ally) {
                 uc.println("attackNearbyEnemyOrNeutralOrShrine attackableShrine: " + attackableShrine.getLocation());
-                if(tryAttack(attackableShrine.getLocation()))
+                if(tryAttack(attackableShrine.getLocation())) {
+                    if(communication.getShrineLocation() != null && attackableShrine.getLocation().isEqual(communication.getShrineLocation())) {
+                        communication.resetShrineLocation();
+                    }
                     return 2;
+                }
+                communication.broadcastShrineLocation(attackableShrine.getLocation());
             }
         }
 
@@ -270,41 +276,47 @@ public abstract class AllyUnit {
         int combatScore = 0;
         UnitInfo[] visibleUnits = uc.senseUnits(team);
         for (UnitInfo visibleUnit : visibleUnits) {
-            if(visibleUnit.getType() == UnitType.EXPLORER) {
-                combatScore += 5;
+            UnitType type = visibleUnit.getType();
+            int unitScore = 0;
+            double percentHealth = (double)visibleUnit.getHealth()/type.getStat(UnitStat.MAX_HEALTH);
+            if(type == UnitType.EXPLORER) {
+                unitScore = 5;
             }
-            else if(visibleUnit.getType() == UnitType.BARBARIAN) {
-                combatScore += 20;
+            else if(type == UnitType.BARBARIAN) {
+                unitScore = 20;
             }
-            else if(visibleUnit.getType() == UnitType.BASE) {
-                combatScore += 100;
+            else if(type == UnitType.BASE) {
+                unitScore = 100;
             }
-            else if(visibleUnit.getType() == UnitType.ASSASSIN) {
-                combatScore += 50;
+            else if(type == UnitType.ASSASSIN) {
+                unitScore = 50;
             }
             else if(visibleUnit.getType() == UnitType.CLERIC) {
-                combatScore += 5;
+                unitScore = 5;
             }
             else if(visibleUnit.getType() == UnitType.KNIGHT) {
-                combatScore += 30;
+                unitScore += 30;
             }
             else if(visibleUnit.getType() == UnitType.MAGE) {
-                combatScore += 50;
+                unitScore += 50;
             }
             else if(visibleUnit.getType() == UnitType.RANGER) {
-                combatScore += 15;
+                unitScore += 15;
             }
+            combatScore += (int)(unitScore * percentHealth);
         }
         return combatScore;
     }
 
     int getAction() {
         int allyCombatScore = getCombatScore(ally);
-        int enemyCombatScore = getCombatScore(opponent);
-        if (enemyCombatScore > 0.8 * allyCombatScore || communication.getHelpLocation() != null) {
+        int enemyCombatScore = getCombatScore(opponent) + getCombatScore(neutral)/2;
+        if (enemyCombatScore > 0.8 * allyCombatScore || (enemyCombatScore > 0 &&
+                (uc.getType() == UnitType.RANGER || uc.getType() == UnitType.EXPLORER)) ||
+                communication.getHelpLocation() != null) {
             return 0; // Retreat
         }
-        else if (allyCombatScore > 1.5 * enemyCombatScore) {
+        else if (allyCombatScore > 1.5 * enemyCombatScore && allyCombatScore > 150) {
             return 3; // Attack
         }
         return 2; // Hold

@@ -4,6 +4,7 @@ import aic2022.user.*;
 
 public class Ranger extends AllyUnit {
     Location dest = null;
+    int turnsSameDest = 0;
 
     Ranger(UnitController uc) {
         super(uc);
@@ -36,11 +37,17 @@ public class Ranger extends AllyUnit {
 
         Direction movementDir = null;
 
+        ChestInfo closestChest = findClosestChest();
+        if(closestChest != null) {
+            if(!openNearbyChests()) {
+                movementDir = getDirectionTo(closestChest.getLocation());
+                uc.println("Ranger is going to treasure chests");
+            }
+        }
         // If attack
-        if (myAction == 3)  {
-            if(communication.cornerTrackingStatus == 2) {
+        else if (myAction == 3)  {
+            if(communication.cornerTrackingStatus == 2 && uc.getLocation().distanceSquared(communication.enemyBaseLocation) > 100) {
                 dest = communication.enemyBaseLocation;
-
                 movementDir = getDirectionTo(dest);
                 uc.println("Ranger action ATTACK");
 //                uc.println("Ranger set destination to enemy base " + dest.toString());
@@ -48,17 +55,12 @@ public class Ranger extends AllyUnit {
             else {
                 uc.println("Ranger is exploring");
 //                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
-
-                ChestInfo closestChest = findClosestChest();
-                if(closestChest != null) {
-                    if(!openNearbyChests()) {
-                        movementDir = getDirectionTo(closestChest.getLocation());
-                        uc.println("Ranger is going to treasure chests");
-                    }
+                if(communication.getShrineLocation() != null) {
+                    dest = communication.getShrineLocation();
+                    movementDir = getDirectionTo(dest);
                 }
                 else if (uc.getRound() % 400 < 250 && communication.getEntranceLocation() != null) {
                     movementDir = getDirectionTo(communication.getEntranceLocation());
-
                 }
                 else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
                     insideDungeon = true;
@@ -69,7 +71,8 @@ public class Ranger extends AllyUnit {
                     uc.println("Ranger exited a dungeon");
                 }
                 else {
-                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+                    movementDir = moveToRandDest();
+//                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
                     uc.println("Ranger is moving randomly");
                 }
             }
@@ -79,6 +82,7 @@ public class Ranger extends AllyUnit {
         else if (myAction == 2) {
             uc.println("Ranger action HOLD");
             movementDir = getRandomMoveDirection();
+//            movementDir = moveToRandDest();
         }
         //Retreat
         else if (myAction == 0) {
@@ -100,8 +104,8 @@ public class Ranger extends AllyUnit {
             if(uc.canMove(dir)) {
                 Location adj = myLocation.add(dir);
                 int newDist = adj.distanceSquared(destination);
-                int newF = (int)Math.sqrt(newDist) * 4 + getVisited(adj);
-                uc.println("Barbarian: Cost of moving in direction " + dir + " is " + newF);
+                int newF = (int)Math.sqrt(newDist) * 4 + getVisited(adj) * 10;
+                uc.println("Ranger: Cost of moving in direction " + dir + " is " + newF);
 
                 if(newF < f) {
                     f = newF;
@@ -121,6 +125,20 @@ public class Ranger extends AllyUnit {
         }
 
         uc.println("Ranger wants to move to destination " + destination + ", moves in dir " + movementDir + " to " + myLocation.add(movementDir));
+        return movementDir;
+    }
+
+    Direction moveToRandDest() {
+        Location myLocation = uc.getLocation();
+//                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+        if(dest == null || turnsSameDest > 100 || myLocation.distanceSquared(dest) < 10 ||
+                uc.isOutOfMap(myLocation.add(myLocation.directionTo(dest)))) {
+            dest = myLocation.add((int)(Math.random() * 80), (int)(Math.random() * 80));
+            turnsSameDest = 0;
+        }
+        Direction movementDir = getDirectionTo(dest);
+        turnsSameDest++;
+        uc.println("Ranger is moving to random destination");
         return movementDir;
     }
 }

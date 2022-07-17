@@ -26,7 +26,10 @@ public class Explorer extends AllyUnit {
 
         Location selfLocation = uc.getLocation();
 
-        if(communication.cornerTrackingStatus == 0
+        if(getAction() == 0) {
+            dest = communication.allyBaseLocation;
+        }
+        else if(communication.cornerTrackingStatus == 0
                 || (communication.cornerTrackingStatus == 1
                 && !communication.allBoundariesFound())) {
             uc.println("Explorer looking for boundaries");

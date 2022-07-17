@@ -37,7 +37,7 @@ public class Base extends AllyUnit {
 
         while(true) {
             UnitType spawnUnitType;
-            if(explorersSpawned < 5 && explorersAlive < 2)
+            if((explorersSpawned < 3 && explorersAlive < 2)|| explorersSpawned < 0.1 * barbariansSpawned)
                 spawnUnitType = UnitType.EXPLORER;
             else if (barbariansAlive < 0.5 * rangersAlive)
                 spawnUnitType = UnitType.BARBARIAN;

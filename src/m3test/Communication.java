@@ -45,6 +45,7 @@ public class Communication {
     final int INDEX_TALLY_EXPLORERS = 11;
     final int INDEX_TALLY_BARBARIANS = 12;
     final int INDEX_TALLY_RANGERS = 13;
+    final int INDEX_SHRINE = 15;
 //    final int INDEX_LOCATIONS = 1000;
 
     // Coordinate max value is 79 + 1000 < 2^11
@@ -588,6 +589,20 @@ public class Communication {
 
     void broadcastEntranceLocation(Location entrance) {
         uc.writeOnSharedArray(INDEX_DUNGEON_ENTRANCE, encodeLocation(entrance)+1);
+    }
+
+    void broadcastShrineLocation(Location shrineLocation) {
+        uc.writeOnSharedArray(INDEX_SHRINE, encodeLocation(shrineLocation)+1);
+    }
+
+    void resetShrineLocation() {
+        uc.writeOnSharedArray(INDEX_SHRINE, 0);
+    }
+
+    Location getShrineLocation() {
+        int encoded = uc.readOnSharedArray(INDEX_SHRINE)-1;
+        if (encoded == -1) return null;
+        return decodeLocation(encoded);
     }
 
     Location getEntranceLocation() {

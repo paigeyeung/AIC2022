@@ -4,6 +4,7 @@ import aic2022.user.*;
 
 public class Barbarian extends AllyUnit {
     Location dest = null;
+    int turnsSameDest = 0;
 
     Barbarian(UnitController uc) {
         super(uc);
@@ -55,9 +56,12 @@ public class Barbarian extends AllyUnit {
                     }
                     uc.println("Barbarian is going to treasure chests");
                 }
+                else if(communication.getShrineLocation() != null) {
+                    dest = communication.getShrineLocation();
+                    movementDir = getDirectionTo(dest);
+                }
                 else if (uc.getRound() % 400 < 250 && communication.getEntranceLocation() != null) {
                     movementDir = getDirectionTo(communication.getEntranceLocation());
-
                 }
                 else if(uc.getRound() % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
                     insideDungeon = true;
@@ -68,8 +72,7 @@ public class Barbarian extends AllyUnit {
                     uc.println("Barbarian exited a dungeon");
                 }
                 else {
-                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
-                    uc.println("Barbarian is moving randomly");
+                    movementDir = moveToRandDest();
                 }
             }
 //            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
@@ -77,7 +80,7 @@ public class Barbarian extends AllyUnit {
         // Hold
         else if (myAction == 2) {
             uc.println("Barbarian action HOLD");
-            movementDir = getRandomMoveDirection();
+            movementDir = moveToRandDest();
         }
         //Retreat
         else if (myAction == 0) {
@@ -126,6 +129,20 @@ public class Barbarian extends AllyUnit {
         }
 
         uc.println("Barbarian wants to move to destination " + destination + ", moves in dir " + movementDir + " to " + myLocation.add(movementDir));
+        return movementDir;
+    }
+
+    Direction moveToRandDest() {
+        Location myLocation = uc.getLocation();
+//                    movementDir = getRandomMoveDirection(); //movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+        if(dest == null || turnsSameDest > 100 || myLocation.distanceSquared(dest) < 10 ||
+                uc.isOutOfMap(myLocation.add(myLocation.directionTo(dest)))) {
+            dest = myLocation.add((int)(Math.random() * 80), (int)(Math.random() * 80));
+            turnsSameDest = 0;
+        }
+        Direction movementDir = getDirectionTo(dest);
+        turnsSameDest++;
+        uc.println("Barbarian is moving randomly");
         return movementDir;
     }
 }
