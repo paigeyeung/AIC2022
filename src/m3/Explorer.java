@@ -16,11 +16,13 @@ public class Explorer extends AllyUnit {
     }
 
     void run() {
+        communication.addToTally();
         communication.downloadMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();
 
-        attackNearbyEnemyOrNeutralOrShrine();
+        if(attackNearbyEnemyOrNeutralOrShrine() == 2)
+            return;
 
         Location selfLocation = uc.getLocation();
 

@@ -109,7 +109,7 @@ public abstract class AllyUnit {
         return false;
     }
 
-    boolean attackNearbyEnemyOrNeutralOrShrine() {
+    int attackNearbyEnemyOrNeutralOrShrine() {
         UnitInfo highestAttackScoreUnit = null;
         float highestAttackScore = 0;
 
@@ -138,7 +138,7 @@ public abstract class AllyUnit {
         if(highestAttackScoreUnit != null) {
             uc.println("attackNearbyEnemyOrNeutralOrShrine highestAttackScoreUnit: " + highestAttackScoreUnit.getLocation() + ", highestAttackScore: " + highestAttackScore);
             if(tryAttack(highestAttackScoreUnit.getLocation()))
-                return true;
+                return 1;
         }
 
         ShrineInfo[] attackableShrines = uc.senseShrines(selfAttackRange);
@@ -146,12 +146,12 @@ public abstract class AllyUnit {
             if(attackableShrine.getOwner() != ally) {
                 uc.println("attackNearbyEnemyOrNeutralOrShrine attackableShrine: " + attackableShrine.getLocation());
                 if(tryAttack(attackableShrine.getLocation()))
-                    return true;
+                    return 2;
             }
         }
 
         uc.println("attackNearbyEnemyOrNeutralOrShrine no target found");
-        return false;
+        return 0;
     }
 
     float getAttackScore(UnitInfo enemyOrNeutralUnit) {
@@ -228,7 +228,7 @@ public abstract class AllyUnit {
     }
 
     boolean attackAndMoveToClosestEnemyOrNeutralOrShrine() {
-        if(attackNearbyEnemyOrNeutralOrShrine())
+        if(attackNearbyEnemyOrNeutralOrShrine() != 0)
             return true;
 
         UnitInfo closestEnemyOrNeutral = getClosestEnemyOrNeutral(true);

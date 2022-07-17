@@ -41,7 +41,9 @@ public class Communication {
     final int INDEX_MOVEMENT = 9;
     final int INDEX_CALL_FOR_HELP = 10;
 
-    final int INDEX_DUNGEON_ENTRANCE = 11;
+    final int INDEX_DUNGEON_ENTRANCE = 13;
+    final int INDEX_TALLY_EXPLORERS = 11;
+    final int INDEX_TALLY_BARBARIANS = 12;
 //    final int INDEX_LOCATIONS = 1000;
 
     // Coordinate max value is 79 + 1000 < 2^11
@@ -591,5 +593,23 @@ public class Communication {
         int encoded = uc.readOnSharedArray(INDEX_DUNGEON_ENTRANCE)-1;
         if (encoded == -1) return null;
         return decodeLocation(encoded);
+    }
+
+    void addToTally() {
+        UnitType selfType = uc.getType();
+        if(selfType == UnitType.EXPLORER)
+            uc.writeOnSharedArray(INDEX_TALLY_EXPLORERS, getExplorerTally() + 1);
+        else if(selfType == UnitType.BARBARIAN)
+            uc.writeOnSharedArray(INDEX_TALLY_BARBARIANS, getBarbarianTally() + 1);
+    }
+    int getExplorerTally() {
+        return uc.readOnSharedArray(INDEX_TALLY_EXPLORERS);
+    }
+    int getBarbarianTally() {
+        return uc.readOnSharedArray(INDEX_TALLY_BARBARIANS);
+    }
+    void resetTallies() {
+        uc.writeOnSharedArray(INDEX_TALLY_EXPLORERS, 0);
+        uc.writeOnSharedArray(INDEX_TALLY_BARBARIANS, 0);
     }
 }
