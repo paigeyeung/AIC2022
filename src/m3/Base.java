@@ -23,14 +23,17 @@ public class Base extends AllyUnit {
 
         attackNearbyEnemyOrNeutral();
 
-        UnitType spawnUnitType;
-        if(explorersSpawned < 1)
-            spawnUnitType = UnitType.EXPLORER;
-        else
-            spawnUnitType = UnitType.BARBARIAN;
+        while(true) {
+            UnitType spawnUnitType;
+            if(explorersSpawned < 1)
+                spawnUnitType = UnitType.EXPLORER;
+            else
+                spawnUnitType = UnitType.BARBARIAN;
 
-        Direction spawnDirection = getSpawnDirection(spawnUnitType);
-        if(spawnDirection != null) {
+            Direction spawnDirection = getSpawnDirection(spawnUnitType);
+            if(spawnDirection == null)
+                break;
+
             uc.spawn(spawnUnitType, spawnDirection);
 
             if(spawnUnitType == UnitType.EXPLORER)

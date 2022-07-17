@@ -45,7 +45,8 @@ public class Barbarian extends AllyUnit {
             }
             else {
                 uc.println("Barbarian is exploring");
-                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+//                movementDir = getDirectionTo(communication.destOfBoundary(communication.getExplorerMovementDir()));
+                movementDir = getRandomMoveDirection();
             }
 //            else if(loc.distanceSquared(communication.allyBaseLocation) < 4) tryRandomMove();
         }
