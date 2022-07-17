@@ -23,9 +23,12 @@ public class Base extends AllyUnit {
 
         attackNearbyEnemyOrNeutralOrShrine();
 
+        int explorersAlive = communication.getExplorerTally();
+        int barbariansAlive = communication.getBarbarianTally();
+
         while(true) {
             UnitType spawnUnitType;
-            if(explorersSpawned < 1)
+            if(explorersSpawned < 2 && explorersAlive < 1)
                 spawnUnitType = UnitType.EXPLORER;
             else
                 spawnUnitType = UnitType.BARBARIAN;
@@ -36,13 +39,18 @@ public class Base extends AllyUnit {
 
             uc.spawn(spawnUnitType, spawnDirection);
 
-            if(spawnUnitType == UnitType.EXPLORER)
+            if(spawnUnitType == UnitType.EXPLORER) {
                 explorersSpawned++;
-            else if(spawnUnitType == UnitType.BARBARIAN)
+                explorersAlive++;
+            }
+            else if(spawnUnitType == UnitType.BARBARIAN) {
                 barbariansSpawned++;
-            totalSpawned++;
+                barbariansAlive++;
+            }
             uc.println("Base spawning " + spawnUnitType + " towards " + spawnDirection);
         }
+
+        communication.resetTallies();
     }
 
     Direction getSpawnDirection(UnitType unitType) {

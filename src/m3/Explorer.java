@@ -16,6 +16,7 @@ public class Explorer extends AllyUnit {
     }
 
     void run() {
+        communication.addToTally();
         communication.downloadMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();

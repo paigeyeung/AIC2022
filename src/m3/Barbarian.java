@@ -15,6 +15,7 @@ public class Barbarian extends AllyUnit {
     }
 
     void run() {
+        communication.addToTally();
         communication.downloadMapBoundariesAndCornerTracking();
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();
