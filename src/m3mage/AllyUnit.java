@@ -40,6 +40,7 @@ public abstract class AllyUnit {
         Location myLocation = uc.getLocation();
         visited[myLocation.x % 80][myLocation.y % 80]++;
         moved = false;
+        communication.downloadAllyBase();
     }
 
     void runAfter() {
@@ -97,6 +98,14 @@ public abstract class AllyUnit {
             return true;
         else if(tryMove(dir.rotateRight()))
             return true;
+        return false;
+    }
+
+    boolean tryLevelUp() {
+        if(uc.canLevelUp()) {
+            uc.levelUp();
+            return true;
+        }
         return false;
     }
 

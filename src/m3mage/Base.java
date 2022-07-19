@@ -38,6 +38,7 @@ public class Base extends AllyUnit {
         
         int explorersAlive = communication.getExplorerTally();
         int barbariansAlive = communication.getBarbarianTally();
+        int magesAlive = communication.getMageTally();
 
         while(true) {
             UnitType spawnUnitType;
@@ -45,6 +46,8 @@ public class Base extends AllyUnit {
                 spawnUnitType = UnitType.EXPLORER;
             else if(explorersSpawned < 2 && explorersAlive < 1 && round > 500)
                 spawnUnitType = UnitType.EXPLORER;
+            else if(magesAlive == 0)
+                spawnUnitType = UnitType.MAGE;
             else
                 spawnUnitType = UnitType.BARBARIAN;
 
