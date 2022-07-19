@@ -5,6 +5,7 @@ import aic2022.user.*;
 public class Base extends AllyUnit {
     int explorersSpawned = 0;
     int barbariansSpawned = 0;
+    int magesSpawned = 0;
     int totalSpawned = 0;
 
     Base(UnitController uc) {
@@ -64,6 +65,10 @@ public class Base extends AllyUnit {
             else if(spawnUnitType == UnitType.BARBARIAN) {
                 barbariansSpawned++;
                 barbariansAlive++;
+            }
+            else if(spawnUnitType == UnitType.MAGE) {
+                magesSpawned++;
+                magesAlive++;
             }
             uc.println("Base spawning " + spawnUnitType + " towards " + spawnDirection);
         }

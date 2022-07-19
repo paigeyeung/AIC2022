@@ -15,6 +15,7 @@ public class UnitPlayer {
         if(type == UnitType.BASE) u = new Base(uc);
         else if(type == UnitType.EXPLORER) u = new Explorer(uc);
         else if(type == UnitType.BARBARIAN) u = new Barbarian(uc);
+        else if(type == UnitType.MAGE) u = new Mage(uc);
         else uc.println("😢🐻‍❄️");
 
         int turn = 1;

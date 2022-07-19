@@ -35,19 +35,19 @@ public class Mage extends AllyUnit {
         communication.lookForMapBoundaries();
         communication.lookForEnemyBase();
 
-        if(assemblyLocation == null) {
+        if (assemblyLocation == null) {
             assemblyLocation = communication.getAssemblyLocation();
-            if(assemblyLocation == null)
+            if (assemblyLocation == null)
                 return;
         }
 
-        if(attackAndMoveToClosestEnemyOrNeutralOrShrine()) {
+        if (attackAndMoveToClosestEnemyOrNeutralOrShrine()) {
             uc.println("Mage chasing enemy");
             return;
         }
 
         ChestInfo closestChest = findClosestChest();
-        if(closestChest != null) {
+        if (closestChest != null) {
             dest = closestChest.getLocation();
             openNearbyChests();
 
@@ -56,12 +56,12 @@ public class Mage extends AllyUnit {
             return;
         }
 
-        if(level == 1 && tryLevelUp()) {
+        if (level == 1 && tryLevelUp()) {
             level++;
         }
 
         Location myLocation = uc.getLocation();
-        if(level == 2 && myLocation.distanceSquared(communication.allyBaseLocation) > 10 &&
+        if (level == 2 && myLocation.distanceSquared(communication.allyBaseLocation) > 10 &&
                 uc.canUseSecondAbility(communication.allyBaseLocation)) {
             uc.useSecondAbility(communication.allyBaseLocation);
             communication.uploadAllyBase(myLocation);
@@ -72,11 +72,11 @@ public class Mage extends AllyUnit {
 
         int distanceSquaredToAssemblyLocation = selfLocation.distanceSquared(assemblyLocation);
 
-        if(action == 0) {
+        if (action == 0) {
             uc.println("Mage moving to assembly " + assemblyLocation);
             dest = assemblyLocation;
 
-            if(distanceSquaredToAssemblyLocation <= WITHIN_GROUP_MAX_DISTANCE) {
+            if (distanceSquaredToAssemblyLocation <= WITHIN_GROUP_MAX_DISTANCE) {
                 uc.println("Mage joined assembly");
                 communication.addSelfToAssembly();
                 action = 1;
@@ -89,62 +89,64 @@ public class Mage extends AllyUnit {
         Location lastGroupCenterLocation = communication.getLastGroupCenterLocation();
         int lastNumTroopsInAssembly = communication.getLastAssemblyNumTroops();
 
-        if(justSwitched) {
+        if (justSwitched) {
             dest = communication.allyBaseLocation;
             tryMove(getDirectionTo(dest));
-            if(selfLocation.distanceSquared(dest) < 4) {
+            if (selfLocation.distanceSquared(dest) < 4) {
                 justSwitched = false;
             }
-        }
-        else if(action == 1) {
-            uc.println("Mage waiting in assembly with " + lastNumTroopsInAssembly + " troops");
-            dest = assemblyLocation;
-            communication.addSelfToAssembly();
+        } else {
+            if (action == 1) {
+                uc.println("Mage waiting in assembly with " + lastNumTroopsInAssembly + " troops");
+                dest = assemblyLocation;
+                communication.addSelfToAssembly();
 
-            if(lastNumTroopsInAssembly >= NUM_TROOPS_PER_ASSEMBLY) {
-                uc.println("Mage assembly moving to group " + lastGroupCenterLocation);
-                dest = lastGroupCenterLocation;
-                action = 2;
-            }
-
-            tryAdjMoves(getDirectionTo(dest));
-            return;
-        }
-
-        int distanceSquaredToLastGroupCenterLocation = selfLocation.distanceSquared(lastGroupCenterLocation);
-
-        if(action == 2) {
-            uc.println("Mage moving to group");
-            dest = lastGroupCenterLocation;
-
-            if(distanceSquaredToLastGroupCenterLocation <= WITHIN_GROUP_MAX_DISTANCE) {
-                uc.println("Mage joined group");
-                communication.addSelfToGroup();
-                action = 3;
-            }
-
-            tryAdjMoves(getDirectionTo(dest));
-            return;
-        }
-
-        if(action == 3) {
-            if(distanceSquaredToLastGroupCenterLocation > WITHIN_GROUP_MAX_DISTANCE) {
-                uc.println("Mage rejoining group " + lastGroupCenterLocation);
-                dest = lastGroupCenterLocation;
-                action = 2;
+                if (lastNumTroopsInAssembly >= NUM_TROOPS_PER_ASSEMBLY) {
+                    uc.println("Mage assembly moving to group " + lastGroupCenterLocation);
+                    dest = lastGroupCenterLocation;
+                    action = 2;
+                }
 
                 tryAdjMoves(getDirectionTo(dest));
                 return;
             }
 
-            communication.addSelfToGroup();
 
-            Location groupAttackLocation = communication.getGroupAttackLocation();
-            uc.println("Mage moving with group to " + groupAttackLocation);
-            dest = groupAttackLocation;
+            int distanceSquaredToLastGroupCenterLocation = selfLocation.distanceSquared(lastGroupCenterLocation);
 
-            tryAdjMoves(getDirectionTo(dest));
-            return;
+            if (action == 2) {
+                uc.println("Mage moving to group");
+                dest = lastGroupCenterLocation;
+
+                if (distanceSquaredToLastGroupCenterLocation <= WITHIN_GROUP_MAX_DISTANCE) {
+                    uc.println("Mage joined group");
+                    communication.addSelfToGroup();
+                    action = 3;
+                }
+
+                tryAdjMoves(getDirectionTo(dest));
+                return;
+            }
+
+            if (action == 3) {
+                if (distanceSquaredToLastGroupCenterLocation > WITHIN_GROUP_MAX_DISTANCE) {
+                    uc.println("Mage rejoining group " + lastGroupCenterLocation);
+                    dest = lastGroupCenterLocation;
+                    action = 2;
+
+                    tryAdjMoves(getDirectionTo(dest));
+                    return;
+                }
+
+                communication.addSelfToGroup();
+
+                Location groupAttackLocation = communication.getGroupAttackLocation();
+                uc.println("Mage moving with group to " + groupAttackLocation);
+                dest = groupAttackLocation;
+
+                tryAdjMoves(getDirectionTo(dest));
+                return;
+            }
         }
     }
 
