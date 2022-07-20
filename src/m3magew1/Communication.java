@@ -1,4 +1,4 @@
-package m3;
+package m3magew1;
 
 import aic2022.user.*;
 
@@ -52,6 +52,7 @@ public class Communication {
     final int INDEX_ASSEMBLY_LOCATION = 20;
     final int INDEX_GROUP_ATTACK_LOCATION = 21;
     final int INDEX_GROUP_ATTACK_PRIORITY = 22;
+    final int INDEX_TALLY_MAGES = 23;
 //    final int INDEX_LOCATIONS = 1000;
 
     // Coordinate max value is 79 + 1000 < 2^11
@@ -613,6 +614,8 @@ public class Communication {
             uc.writeOnSharedArray(INDEX_TALLY_EXPLORERS, getExplorerTally() + 1);
         else if(selfType == UnitType.BARBARIAN)
             uc.writeOnSharedArray(INDEX_TALLY_BARBARIANS, getBarbarianTally() + 1);
+        else if(selfType == UnitType.MAGE)
+            uc.writeOnSharedArray(INDEX_TALLY_MAGES, getMageTally() + 1);
     }
     int getExplorerTally() {
         return uc.readOnSharedArray(INDEX_TALLY_EXPLORERS);
@@ -620,9 +623,14 @@ public class Communication {
     int getBarbarianTally() {
         return uc.readOnSharedArray(INDEX_TALLY_BARBARIANS);
     }
+
+    int getMageTally() {
+        return uc.readOnSharedArray(INDEX_TALLY_MAGES);
+    }
     void resetTallies() {
         uc.writeOnSharedArray(INDEX_TALLY_EXPLORERS, 0);
         uc.writeOnSharedArray(INDEX_TALLY_BARBARIANS, 0);
+        uc.writeOnSharedArray(INDEX_TALLY_MAGES, 0);
     }
 
     void initializeCallForHelp() {

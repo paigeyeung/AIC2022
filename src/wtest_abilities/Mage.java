@@ -27,7 +27,7 @@ public class Mage extends AllyUnit {
             return;
         }
 
-        ShrineInfo[] shrines = uc.senseShrines((int)uc.getType().getStat(UnitStat.VISION_RANGE));
+        ShrineInfo[] shrines = uc.senseShrines((int)uc.getType().getStat(UnitStat.ABILITY_1_RANGE));
         for(ShrineInfo shrine : shrines) {
             uc.println("shrine " + shrine.getLocation());
             if(uc.canUseFirstAbility(shrine.getLocation())) {
