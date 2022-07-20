@@ -55,8 +55,8 @@ public class Mage extends AllyUnit {
 
         Location myLocation = uc.getLocation();
         if (level == 2 && myLocation.distanceSquared(communication.allyBaseLocation) > 10 &&
-                uc.canUseSecondAbility(communication.allyBaseLocation)) {
-            uc.useSecondAbility(communication.allyBaseLocation);
+                uc.canUseFirstAbility(communication.allyBaseLocation)) {
+            uc.useFirstAbility(communication.allyBaseLocation);
             communication.uploadAllyBase(myLocation);
             justSwitched = true;
         }
