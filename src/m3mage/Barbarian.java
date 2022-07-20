@@ -52,35 +52,6 @@ public class Barbarian extends AllyUnit {
             return;
         }
 
-//        if(doDungeons) {
-//
-//        }
-//        int round = uc.getRound();
-//        if (round % 400 < 250 && communication.getEntranceLocation() != null) {
-//            dest = communication.getEntranceLocation();
-//
-//            uc.println("Barbarian entering dungeon " + dest);
-//            tryAdjMoves(getDirectionTo(dest));
-//            return;
-//        }
-//        if(round % 400 < 200 && tryEnterDungeon() && !insideDungeon) {
-//            uc.println("Barbarian entered a dungeon");
-//            insideDungeon = true;
-//            return;
-//        }
-//        if(round % 400 > 350 && tryEnterDungeon() && insideDungeon) {
-//            uc.println("Barbarian exited a dungeon");
-//            insideDungeon = false;
-//            return;
-//        }
-//        if(insideDungeon) {
-//            uc.println("Barbarian is moving randomly in dungeon");
-//            dest = communication.getRandomDestination();
-//
-//            tryAdjMoves(getDirectionTo(dest));
-//            return;
-//        }
-
         Location selfLocation = uc.getLocation();
 
         int distanceSquaredToAssemblyLocation = selfLocation.distanceSquared(assemblyLocation);
