@@ -768,7 +768,7 @@ public class Communication {
 
             if(cornerTrackingStatus == 2) {
                 int enemyBaseDistanceSquared = tileLocation.distanceSquared(enemyBaseLocation);
-                score += enemyBaseDistanceSquared / 5;
+                score -= enemyBaseDistanceSquared;
             }
 
             for(int x = -1; x <= 1; x++) {
@@ -799,7 +799,7 @@ public class Communication {
 
             if(cornerTrackingStatus == 2) {
                 int enemyBaseDistanceSquared = tileLocation.distanceSquared(enemyBaseLocation);
-                score += enemyBaseDistanceSquared / 5;
+                score -= enemyBaseDistanceSquared;
             }
 
             for(int x = -1; x <= 1; x++) {

@@ -28,7 +28,11 @@ public class Base extends AllyUnit {
 
         Location selfLocation = uc.getLocation();
 
-        if(getCombatScore(neutral) + getCombatScore(opponent) > getCombatScore(ally)) {
+        int opponentCombatScore = getCombatScore(opponent);
+        int neutralCombatScore = getCombatScore(neutral);
+        int allyCombatScore = getCombatScore(ally);
+
+        if(opponentCombatScore + neutralCombatScore > allyCombatScore) {
             communication.setGroupAttack(selfLocation, 4, false);
         }
 
@@ -40,7 +44,9 @@ public class Base extends AllyUnit {
 
         while(true) {
             UnitType spawnUnitType;
-            if(explorersSpawned < 1)
+            if(opponentCombatScore + neutralCombatScore >= 100)
+                spawnUnitType = UnitType.BARBARIAN;
+            else if(explorersSpawned < 1)
                 spawnUnitType = UnitType.EXPLORER;
             else if(explorersSpawned < 2 && explorersAlive < 1 && round > 500)
                 spawnUnitType = UnitType.EXPLORER;
